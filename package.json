@@ -1,0 +1,17 @@
+{
+  "name": "thingengine-thingmanager",
+  "version": "1.0.0",
+  "description": "ThingManager component of ThingEngine",
+  "author": "Stanford Mobisocial lab",
+  "contributors": [
+    {
+      "name": "Giovanni Campagna",
+      "email": "gcampagn@cs.stanford.edu"
+    }
+  ],
+  "main": "index.js",
+  "dependencies": {
+    "oauth": "~0.9.14",
+    "q": "~1.4.1"
+  }
+}
