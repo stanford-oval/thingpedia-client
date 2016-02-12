@@ -1,4 +1,4 @@
-# ThingPedia API
+# ThingPedia Client-Side Libraries
 
 ## Help the World Connect the Dots
 
@@ -7,16 +7,14 @@ ThingPedia is the distributed open source platform for IoT rules.
 Anyone can contribute the interface code to access any device or
 web service to ThingPedia.
 
-This package contains the public API and set of JS interfaces
-that any package published in ThingPedia should adhere too.
+This package contains the client side libraries to retrieve and
+instantiate the interface code from a public ThingPedia instance.
 
-ThingPedia is a research project led by prof. Monica Lam, from Stanford University.
-You can find more information at http://www.thingpedia.org
+ThingPedia is part of Open Thing Platform, a research project led by
+prof. Monica Lam, from Stanford University.  You can find more
+information [here](https://thingengine.stanford.edu/about).
 
 ## License
 
-This package, as well as ThingEngine, is covered by the GNU
-General Public License, version 2 or any later version.
-This means, among other things, that any project or package
-wishing to use this API, or to be published in ThingPedia, must
-use a GPL-compatible license.
+This package is covered by the GNU General Public License, version 2
+or any later version.
