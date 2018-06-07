@@ -1,8 +1,9 @@
 {
-  "name": "thingengine-thingmanager",
+  "name": "thingpedia-client",
   "version": "1.0.0",
-  "description": "ThingManager component of ThingEngine",
-  "author": "Stanford Mobisocial lab",
+  "description": "Thingpedia client-side library",
+  "author": "Stanford Mobisocial IoT Lab",
+  "license": "GPL-3.0+",
   "contributors": [
     {
       "name": "Giovanni Campagna",
@@ -12,8 +13,7 @@
   "main": "index.js",
   "dependencies": {
     "thingpedia": "^2.2.1",
-    "tmp": "0.0.28",
-    "ws": "^1.1.0"
+    "tmp": "0.0.33"
   },
   "scripts": {
     "lint": "eslint ./lib",

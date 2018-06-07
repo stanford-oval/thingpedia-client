@@ -16,5 +16,5 @@ information [here](https://thingengine.stanford.edu/about).
 
 ## License
 
-This package is covered by the GNU General Public License, version 2
+This package is covered by the GNU General Public License, version 3
 or any later version.
