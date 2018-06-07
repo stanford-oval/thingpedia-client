@@ -15,7 +15,14 @@
     "tmp": "0.0.28",
     "ws": "^1.1.0"
   },
+  "scripts": {
+    "lint": "eslint ./lib",
+    "test": "nyc node ./test",
+    "coverage": "nyc report --reporter=text-lcov | coveralls"
+  },
   "devDependencies": {
-    "eslint": "^4.19.1"
+    "coveralls": "^3.0.1",
+    "eslint": "^4.19.1",
+    "nyc": "^12.0.2"
   }
 }
