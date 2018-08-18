@@ -1,5 +1,7 @@
 # ThingPedia Client-Side Libraries
 
+[![Greenkeeper badge](https://badges.greenkeeper.io/Stanford-Mobisocial-IoT-Lab/thingpedia-client.svg)](https://greenkeeper.io/)
+
 ## Help the World Connect the Dots
 
 ThingPedia is the distributed open source platform for IoT rules.
