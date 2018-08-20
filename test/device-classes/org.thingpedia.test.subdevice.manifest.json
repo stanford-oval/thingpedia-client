@@ -1,0 +1,31 @@
+{
+    "kind": "org.thingpedia.test.subdevice",
+    "module_type": "org.thingpedia.v2",
+    "version": 1,
+
+    "auth": {
+        "type": "none"
+    },
+
+    "queries": {
+        "get_data": {
+            "args": [{
+                "name": "data",
+                "type": "String",
+                "is_input": false,
+                "is_required": false
+            }],
+            "poll_interval": 1000
+        }
+    },
+    "actions": {
+        "eat_data": {
+            "args": [{
+                "name": "data",
+                "type": "String",
+                "is_input": true,
+                "is_required": true
+            }]
+        }
+    }
+}

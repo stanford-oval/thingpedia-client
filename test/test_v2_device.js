@@ -15,44 +15,9 @@ const child_process = require('child_process');
 const os = require('os');
 
 const Modules = require('../lib/modules');
+const ModuleDownloader = require('../lib/downloader');
 
 const MyDevice = require('./device-classes/org.thingpedia.test.mydevice');
-
-const metadata = {
-    primary_kind: 'org.thingpedia.test.mydevice',
-    version: 1,
-
-    queries: {
-        something: {
-            args: [{
-                name: 'v1',
-                type: 'String'
-            }, {
-                name: 'v2',
-                type: 'Number'
-            }],
-            poll_interval: 0
-        },
-        something_poll: {
-            args: [{
-                name: 'v1',
-                type: 'String'
-            }, {
-                name: 'v2',
-                type: 'Number'
-            }],
-            poll_interval: 1000
-        }
-    },
-    actions: {
-        something_else: {
-            args: [{
-                name: 'v3',
-                type: 'String'
-            }],
-        }
-    }
-};
 
 const _unzipApi = {
     unzip(zipPath, dir) {
@@ -97,72 +62,129 @@ const mockPlatform = {
 };
 
 const mockClient = {
-    getModuleLocation(id) {
+    async getModuleLocation(id) {
         if (id === 'com.xkcd')
-            return Promise.resolve('https://d1ge76rambtuys.cloudfront.net/devices/com.xkcd-v91.zip');
+            return 'https://d1ge76rambtuys.cloudfront.net/devices/com.xkcd-v91.zip';
         else
             throw new Error('invalid id');
+    },
+
+    async getDeviceCode(kind) {
+        switch (kind) {
+        case 'org.thingpedia.test.mydevice':
+        case 'org.thingpedia.test.collection':
+        case 'org.thingpedia.test.subdevice':
+        case 'com.xkcd':
+            return require('./device-classes/' + kind + '.manifest.json');
+        default:
+            assert.fail('Invalid device ' + kind);
+            // quiet eslint
+            return null;
+        }
     }
 };
 
-function testPreloaded() {
-    const module = new (Modules['org.thingpedia.v2'])('org.thingpedia.test.mydevice', metadata, mockPlatform, mockClient);
+async function testDownloader() {
+    const metadata = await mockClient.getDeviceCode('org.thingpedia.test.mydevice');
+
+    const downloader = new ModuleDownloader(mockPlatform, mockClient);
+    const module = await downloader.getModule('org.thingpedia.test.mydevice');
+
+    assert.strictEqual(module.id, 'org.thingpedia.test.mydevice');
+    assert.strictEqual(module.version, 1);
+    assert.deepStrictEqual(module.manifest, metadata);
+}
+
+async function testPreloaded() {
+    const metadata = await mockClient.getDeviceCode('org.thingpedia.test.mydevice');
+
+    const downloader = new ModuleDownloader(mockPlatform, mockClient);
+    const module = new (Modules['org.thingpedia.v2'])('org.thingpedia.test.mydevice', metadata, downloader);
 
     assert.strictEqual(module.id, 'org.thingpedia.test.mydevice');
     assert.strictEqual(module.version, 1);
     assert.strictEqual(module.manifest, metadata);
 
-    return module.getDeviceFactory().then((factory) => {
-        assert.strictEqual(factory, MyDevice);
-        assert.strictEqual(factory.metadata, metadata);
-        assert.deepStrictEqual(factory.require('package.json'), {"name":"org.thingpedia.test.mydevice",
-            "main": "index.js",
-            "thingpedia-version":1
-        });
+    const factory = await module.getDeviceFactory();
 
-        const engine = {};
-        const d = new factory(engine, { kind: 'org.thingpedia.test.mydevice' });
-        assert.strictEqual(typeof d.get_something, 'function');
-        assert.strictEqual(typeof d.get_something_poll, 'function');
-        assert.strictEqual(typeof d.subscribe_something, 'function');
-        assert.strictEqual(typeof d.subscribe_something_poll, 'function');
-        assert.strictEqual(typeof d.history_something, 'function');
-        assert.strictEqual(typeof d.history_something_poll, 'function');
-        assert.strictEqual(typeof d.sequence_something, 'function');
-        assert.strictEqual(typeof d.sequence_something_poll, 'function');
-        assert.strictEqual(typeof d.do_something_else, 'function');
-
-        return module.clearCache();
-    }).then(() => {
-        return module.getDeviceFactory();
-    }).then((factory2) => {
-        assert(factory2 !== MyDevice);
+    assert.strictEqual(factory, MyDevice);
+    assert.strictEqual(factory.metadata, metadata);
+    assert.deepStrictEqual(factory.require('package.json'), {"name":"org.thingpedia.test.mydevice",
+        "main": "index.js",
+        "thingpedia-version":1
     });
+
+    const engine = {};
+    const d = new factory(engine, { kind: 'org.thingpedia.test.mydevice' });
+    assert.strictEqual(typeof d.get_something, 'function');
+    assert.strictEqual(typeof d.get_something_poll, 'function');
+    assert.strictEqual(typeof d.subscribe_something, 'function');
+    assert.strictEqual(typeof d.subscribe_something_poll, 'function');
+    assert.strictEqual(typeof d.history_something, 'function');
+    assert.strictEqual(typeof d.history_something_poll, 'function');
+    assert.strictEqual(typeof d.sequence_something, 'function');
+    assert.strictEqual(typeof d.sequence_something_poll, 'function');
+    assert.strictEqual(typeof d.do_something_else, 'function');
+
+    await module.clearCache();
+
+    const factory2 = await module.getDeviceFactory();
+    assert(factory2 !== MyDevice);
 }
 
-function testThingpedia() {
+async function testSubdevice() {
+    const collectionMetadata = await mockClient.getDeviceCode('org.thingpedia.test.collection');
+    const subMetadata = await mockClient.getDeviceCode('org.thingpedia.test.subdevice');
+
+    const downloader = new ModuleDownloader(mockPlatform, mockClient);
+
+    const collectionModule = new (Modules['org.thingpedia.v2'])('org.thingpedia.test.collection',
+                                                                collectionMetadata,
+                                                                downloader);
+    assert.strictEqual(collectionModule.id, 'org.thingpedia.test.collection');
+
+    // this will also load the subdevices
+    const collectionFactory = await collectionModule.getDeviceFactory();
+
+    assert.strictEqual(typeof collectionFactory.prototype.get_get_data, 'undefined');
+    assert.strictEqual(typeof collectionFactory.prototype.do_eat_data, 'undefined');
+
+    const subFactory = collectionFactory.subdevices['org.thingpedia.test.subdevice'];
+
+    // cannot use strictEqual here because the module is instantiated by the downloader,
+    // not by us, so it will be a different object
+    assert.deepStrictEqual(subFactory.metadata, subMetadata);
+
+    assert.strictEqual(typeof subFactory.prototype.get_get_data, 'function');
+    assert.strictEqual(typeof subFactory.prototype.do_eat_data, 'function');
+}
+
+async function testThingpedia() {
     child_process.spawnSync('rm', ['-rf', mockPlatform.getCacheDir() + '/device-classes/com.xkcd']);
 
-    const metadata = require('./com.xkcd.json');
+    const metadata = await mockClient.getDeviceCode('com.xkcd');
+    const downloader = new ModuleDownloader(mockPlatform, mockClient);
 
-    const module = new (Modules['org.thingpedia.v2'])('com.xkcd', metadata, mockPlatform, mockClient);
+    const module = new (Modules['org.thingpedia.v2'])('com.xkcd', metadata, downloader);
 
     assert.strictEqual(module.id, 'com.xkcd');
     assert(module.version >= 91);
     assert.strictEqual(module.manifest, metadata);
 
-    return module.getDeviceFactory().then((factory) => {
-        assert.strictEqual(factory.metadata, metadata);
-        assert.strictEqual(typeof factory.prototype.get_get_comic, 'function');
-        assert.strictEqual(typeof factory.prototype.get_random_comic, 'function');
-    });
+    const factory = await module.getDeviceFactory();
+
+    assert.strictEqual(factory.metadata, metadata);
+    assert.strictEqual(typeof factory.prototype.get_get_comic, 'function');
+    assert.strictEqual(typeof factory.prototype.subscribe_get_comic, 'function');
+    assert.strictEqual(typeof factory.prototype.get_random_comic, 'function');
+    assert.strictEqual(typeof factory.prototype.subscribe_random_comic, 'function');
 }
 
-function main() {
-    return Promise.all([
-        testPreloaded(),
-        testThingpedia(),
-    ]);
+async function main() {
+    await testPreloaded();
+    await testSubdevice();
+    await testThingpedia();
+    await testDownloader();
 }
 module.exports = main;
 if (!module.parent)
