@@ -10,9 +10,15 @@
 const BaseClient = require('./lib/base_client');
 const HttpClient = require('./lib/http_client');
 const DeviceFactory = require('./lib/factory');
+const ModuleDownloader = require('./lib/downloader');
+const Modules = require('./lib/modules');
 
 module.exports = {
     BaseClient,
     HttpClient,
-    DeviceFactory
+    DeviceFactory,
+
+    // low-level semi-private API, exposed primarily for testing
+    ModuleDownloader,
+    Modules
 };
