@@ -10,79 +10,13 @@
 "use strict";
 
 const assert = require('assert');
-const path = require('path');
 const child_process = require('child_process');
-const os = require('os');
 
 const Modules = require('../lib/modules');
 const ModuleDownloader = require('../lib/downloader');
 
 const MyDevice = require('./device-classes/org.thingpedia.test.mydevice');
-
-const _unzipApi = {
-    unzip(zipPath, dir) {
-        var args = ['-uo', zipPath, '-d', dir];
-        return new Promise((resolve, reject) => {
-            child_process.execFile('/usr/bin/unzip', args, { maxBuffer: 10 * 1024 * 1024 }, (err, stdout, stderr) => {
-                if (err)
-                    reject(err);
-                else
-                    resolve([stdout, stderr]);
-            });
-        }).then(([stdout, stderr]) => {
-            console.log('stdout', stdout);
-            console.log('stderr', stderr);
-        });
-    }
-};
-
-const mockPlatform = {
-    getCacheDir() {
-        return path.dirname(module.filename);
-    },
-    getTmpDir() {
-        return os.tmpdir();
-    },
-    hasCapability(cap) {
-        switch (cap) {
-        case 'code-download':
-            return true;
-        default:
-            return false;
-        }
-    },
-    getCapability(cap) {
-        switch (cap) {
-        case 'code-download':
-            return _unzipApi;
-        default:
-            return null;
-        }
-    }
-};
-
-const mockClient = {
-    async getModuleLocation(id) {
-        if (id === 'com.xkcd')
-            return 'https://d1ge76rambtuys.cloudfront.net/devices/com.xkcd-v91.zip';
-        else
-            throw new Error('invalid id');
-    },
-
-    async getDeviceCode(kind) {
-        switch (kind) {
-        case 'org.thingpedia.test.mydevice':
-        case 'org.thingpedia.test.collection':
-        case 'org.thingpedia.test.subdevice':
-        case 'com.xkcd':
-            return require('./device-classes/' + kind + '.manifest.json');
-        default:
-            assert.fail('Invalid device ' + kind);
-            // quiet eslint
-            return null;
-        }
-    }
-};
+const { mockClient, mockPlatform, mockEngine, State } = require('./mock');
 
 async function testDownloader() {
     const metadata = await mockClient.getDeviceCode('org.thingpedia.test.mydevice');
@@ -114,8 +48,7 @@ async function testPreloaded() {
         "thingpedia-version":1
     });
 
-    const engine = {};
-    const d = new factory(engine, { kind: 'org.thingpedia.test.mydevice' });
+    const d = new factory(mockEngine, { kind: 'org.thingpedia.test.mydevice' });
     assert.strictEqual(typeof d.get_something, 'function');
     assert.strictEqual(typeof d.get_something_poll, 'function');
     assert.strictEqual(typeof d.subscribe_something, 'function');
@@ -125,6 +58,75 @@ async function testPreloaded() {
     assert.strictEqual(typeof d.sequence_something, 'function');
     assert.strictEqual(typeof d.sequence_something_poll, 'function');
     assert.strictEqual(typeof d.do_something_else, 'function');
+
+    assert.deepStrictEqual(d.get_something(), [
+        {v1: 'foo', v2: 42}
+    ]);
+    await new Promise((resolve, reject) => {
+        let finished = false;
+        setTimeout(() => {
+            if (finished)
+                resolve();
+            else
+                reject(new assert.AssertionError('Timed out'));
+        }, 5000);
+
+        const stream = d.subscribe_something({}, new State);
+        let expect = 42;
+        stream.on('data', (data) => {
+            try {
+                if (finished)
+                    assert.fail('too many results');
+                delete data.__timestamp;
+                assert.deepStrictEqual(data, {
+                    v1: 'foo',
+                    v2: expect
+                });
+                expect ++;
+                if (expect === 44) {
+                    stream.destroy();
+                    finished = true;
+                }
+            } catch(e) { reject(e); }
+        });
+        stream.on('end', () => {
+            reject(new assert.AssertionError('Stream ended unexpected'));
+        });
+    });
+    await new Promise((resolve, reject) => {
+        let finished = false;
+        setTimeout(() => {
+            if (finished)
+                resolve();
+            else
+                reject(new assert.AssertionError('Timed out'));
+        }, 5000);
+
+        const stream = d.subscribe_something_poll({}, new State);
+        let count = 0;
+        stream.on('data', (data) => {
+            try {
+                if (finished)
+                    assert.fail('too many results');
+                delete data.__timestamp;
+                assert.deepStrictEqual(data, {
+                    v1: 'foo',
+                    v2: 42
+                });
+                count++;
+                if (count === 2) {
+                    stream.destroy();
+                    finished = true;
+                }
+            } catch(e) { reject(e); }
+        });
+        stream.on('end', () => {
+            reject(new assert.AssertionError('Stream ended unexpected'));
+        });
+    });
+    assert.throws(() => {
+        d.subscribe_something_nomonitor();
+    });
 
     await module.clearCache();
 

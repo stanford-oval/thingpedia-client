@@ -12,6 +12,7 @@ async function seq(array) {
 }
 
 seq([
+    require('./test_http_client'),
     require('./test_v2_device'),
-    require('./test_http_client')
+    require('./test_generic_rest'),
 ]);

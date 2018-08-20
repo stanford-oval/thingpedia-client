@@ -1,0 +1,42 @@
+{
+  "kind": "org.httpbin",
+  "module_type": "org.thingpedia.generic_rest.v1",
+  "version": 1,
+
+  "auth": {
+    "type": "basic"
+  },
+  "params": {
+    "username": ["Username", "text"],
+    "password": ["Password", "text"]
+  },
+
+  "queries": {
+    "get": {
+      "args": [
+        {
+          "name": "input",
+          "type": "String",
+          "is_input": true,
+          "is_required": true
+        },
+        {
+          "name": "authenticated",
+          "type": "Boolean",
+          "is_input": false,
+          "is_required": false
+        },
+        {
+          "name": "user",
+          "type": "String",
+          "is_input": false,
+          "is_required": false
+        }
+      ],
+      "url": "https://httpbin.org/basic-auth/fake-user/${input}",
+      "is_list": false,
+      "poll_interval": -1
+    }
+  },
+  "actions": {}
+}

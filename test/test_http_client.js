@@ -11,25 +11,6 @@
 
 const assert = require('assert');
 
-if (!assert.rejects) {
-    assert.rejects = async function rejects(promise, error, message) {
-        if (typeof promise === 'function')
-            promise = promise();
-
-        try {
-            await promise;
-            try {
-                assert.fail("Expected a rejected promise");
-            } catch(e) {
-                return Promise.reject(e);
-            }
-        } catch(e) {
-            assert.throws(() => { throw e; }, error, message);
-        }
-        return Promise.resolve();
-    };
-}
-
 const HttpClient = require('../lib/http_client');
 
 const _mockPlatform = {

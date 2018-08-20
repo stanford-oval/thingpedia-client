@@ -28,8 +28,9 @@ module.exports = class MyDevice extends Tp.BaseDevice {
         str.push({ v1: 'foo', v2: 42 });
         setTimeout(() => {
             str.push({ v1: 'foo', v2: 43 });
-            str.push(1000);
         }, 1000);
+        str.destroy = () => {};
+        return str;
     }
 
     get_something_poll() {
