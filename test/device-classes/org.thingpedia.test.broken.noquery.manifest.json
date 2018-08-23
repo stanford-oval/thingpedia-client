@@ -1,0 +1,23 @@
+{
+    "kind": "org.thingpedia.test.broken.noquery",
+    "module_type": "org.thingpedia.v2",
+    "version": 1,
+
+    "auth": {
+        "type": "none"
+    },
+
+    "queries": {
+        "something": {
+            "args": [{
+                "name": "v1",
+                "type": "String"
+            }, {
+                "name": "v2",
+                "type": "Number"
+            }],
+            "poll_interval": 1000
+        }
+    },
+    "actions": {}
+}

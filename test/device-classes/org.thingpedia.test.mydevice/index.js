@@ -36,6 +36,9 @@ module.exports = class MyDevice extends Tp.BaseDevice {
     get_something_poll() {
         return [{v1: 'foo', v2: 42}];
     }
+    get_something_nomonitor() {
+        return [{v1: 'foo', v2: 42}];
+    }
     do_something_else({ v3 }) {
         assert.strictEqual(v3, 'bar');
     }

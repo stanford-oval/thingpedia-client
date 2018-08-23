@@ -14,6 +14,7 @@ const child_process = require('child_process');
 
 const Modules = require('../lib/modules');
 const ModuleDownloader = require('../lib/downloader');
+const { ImplementationError } = require('../lib/modules/errors');
 
 const MyDevice = require('./device-classes/org.thingpedia.test.mydevice');
 const { mockClient, mockPlatform, mockEngine, State } = require('./mock');
@@ -59,7 +60,7 @@ async function testPreloaded() {
     assert.strictEqual(typeof d.sequence_something_poll, 'function');
     assert.strictEqual(typeof d.do_something_else, 'function');
 
-    assert.deepStrictEqual(d.get_something(), [
+    assert.deepStrictEqual(await d.get_something(), [
         {v1: 'foo', v2: 42}
     ]);
     await new Promise((resolve, reject) => {
@@ -161,6 +162,38 @@ async function testSubdevice() {
     assert.strictEqual(typeof subFactory.prototype.do_eat_data, 'function');
 }
 
+async function testBrokenDevices() {
+    // test that devices with developer errors report sensible, localized and easy to
+    // understand errors
+
+    const downloader = new ModuleDownloader(mockPlatform, mockClient);
+
+    for (let err of ['noaction', 'noquery', 'nosubscribe']) {
+        const metadata = await mockClient.getDeviceCode('org.thingpedia.test.broken.' + err);
+        const module = new (Modules['org.thingpedia.v2'])('org.thingpedia.test.broken.' + err,
+                                                          metadata, downloader);
+
+        // assert that we cannot actually load this device
+        await assert.rejects(() => module.getDeviceFactory(), ImplementationError);
+    }
+
+    // now load a device where the error is at runtime
+    const metadata = await mockClient.getDeviceCode('org.thingpedia.test.broken');
+    const module = new (Modules['org.thingpedia.v2'])('org.thingpedia.test.broken',
+                                                      metadata, downloader);
+    // this should load correctly
+    const factory = await module.getDeviceFactory();
+    const instance = new factory(mockEngine, { kind: 'org.thingpedia.test.broken' });
+
+    // the methods in this class don't throw an error, but they
+    // also don't return the correct result
+    await assert.rejects(() => instance.get_something_poll1(), ImplementationError);
+    await assert.rejects(() => instance.get_something_poll2(), ImplementationError);
+    await assert.rejects(() => instance.get_something_poll3(), ImplementationError);
+    await assert.rejects(() => instance.get_something_poll4(), ImplementationError);
+    await assert.throws(() => instance.subscribe_something(), ImplementationError);
+}
+
 async function testThingpedia() {
     child_process.spawnSync('rm', ['-rf', mockPlatform.getCacheDir() + '/device-classes/com.xkcd']);
 
@@ -185,6 +218,7 @@ async function testThingpedia() {
 async function main() {
     await testPreloaded();
     await testSubdevice();
+    await testBrokenDevices();
     await testThingpedia();
     await testDownloader();
 }
