@@ -90,6 +90,10 @@ const mockClient = {
         case 'org.thingpedia.test.mydevice':
         case 'org.thingpedia.test.collection':
         case 'org.thingpedia.test.subdevice':
+        case 'org.thingpedia.test.broken':
+        case 'org.thingpedia.test.broken.noquery':
+        case 'org.thingpedia.test.broken.noaction':
+        case 'org.thingpedia.test.broken.nosubscribe':
         case 'com.xkcd':
         case 'org.httpbin':
         case 'org.httpbin.oauth':

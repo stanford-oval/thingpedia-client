@@ -1,0 +1,20 @@
+{
+    "kind": "org.thingpedia.test.broken.noaction",
+    "module_type": "org.thingpedia.v2",
+    "version": 1,
+
+    "auth": {
+        "type": "none"
+    },
+
+    "queries": {
+    },
+    "actions": {
+        "something_else": {
+            "args": [{
+                "name": "v3",
+                "type": "String"
+            }]
+        }
+    }
+}
