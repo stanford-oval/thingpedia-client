@@ -14,31 +14,12 @@ const assert = require('assert');
 const Tp = require('thingpedia');
 
 const { mockClient, mockPlatform, mockEngine, State } = require('./mock');
+const { ImplementationError } = require('../lib/modules/errors');
 
 const Modules = require('../lib/modules');
 const ModuleDownloader = require('../lib/downloader');
 
-async function testBasic() {
-    const metadata = await mockClient.getDeviceCode('org.httpbin');
-
-    const downloader = new ModuleDownloader(mockPlatform, mockClient);
-    const module = new (Modules['org.thingpedia.generic_rest.v1'])('org.httpbin', metadata, downloader);
-
-    assert.strictEqual(module.id, 'org.httpbin');
-    assert.strictEqual(module.version, 1);
-
-    const factory = await module.getDeviceFactory();
-
-    assert(factory.prototype instanceof Tp.BaseDevice);
-    assert.strictEqual(typeof factory.prototype.get_get, 'function');
-    assert.strictEqual(typeof factory.prototype.subscribe_get, 'function');
-
-    const instance = new factory(mockEngine, {});
-    assert.deepStrictEqual(await instance.get_get({}), [{
-        url: 'https://httpbin.org/get',
-        user_agent: "Thingpedia/1.0.0 nodejs/" + process.version
-    }]);
-
+async function testPoll(instance, fn) {
     await new Promise((resolve, reject) => {
         let finished = false;
         setTimeout(() => {
@@ -48,7 +29,7 @@ async function testBasic() {
                 reject(new assert.AssertionError('Timed out'));
         }, 20000);
 
-        const stream = instance.subscribe_get({}, new State);
+        const stream = instance['subscribe_' + fn]({}, new State);
         let count = 0;
         stream.on('data', (data) => {
             try {
@@ -70,6 +51,42 @@ async function testBasic() {
             reject(new assert.AssertionError('Stream ended unexpected'));
         });
     });
+}
+
+async function testBasic() {
+    const metadata = await mockClient.getDeviceCode('org.httpbin');
+
+    const downloader = new ModuleDownloader(mockPlatform, mockClient);
+    const module = new (Modules['org.thingpedia.generic_rest.v1'])('org.httpbin', metadata, downloader);
+
+    assert.strictEqual(module.id, 'org.httpbin');
+    assert.strictEqual(module.version, 1);
+
+    const factory = await module.getDeviceFactory();
+
+    assert(factory.prototype instanceof Tp.BaseDevice);
+    assert.strictEqual(typeof factory.prototype.get_get, 'function');
+    assert.strictEqual(typeof factory.prototype.subscribe_get, 'function');
+
+    const instance = new factory(mockEngine, {});
+    assert.deepStrictEqual(await instance.get_get({}), [{
+        url: 'https://httpbin.org/get',
+        user_agent: "Thingpedia/1.0.0 nodejs/" + process.version
+    }]);
+    await testPoll(instance, 'get');
+
+    assert.deepStrictEqual(await instance.get_get_nomonitor({}), [{
+        url: 'https://httpbin.org/get',
+        user_agent: "Thingpedia/1.0.0 nodejs/" + process.version
+    }]);
+    assert.strictEqual(typeof factory.prototype.subscribe_get_nomonitor, 'function');
+    assert.throws(() => instance.subscribe_get_nomonitor({}, new State));
+
+    assert.deepStrictEqual(await instance.get_get_poll_compat({}), [{
+        url: 'https://httpbin.org/get',
+        user_agent: "Thingpedia/1.0.0 nodejs/" + process.version
+    }]);
+    await testPoll(instance, 'get_poll_compat');
 
     assert.deepStrictEqual(await instance.get_get_args({ input: 'foo' }), [{
         output: 'foo'
@@ -150,10 +167,24 @@ async function testBasicAuth() {
     }]);
 }
 
+async function testBroken() {
+    // test that devices with developer errors report sensible, localized and easy to
+    // understand errors
+
+    const downloader = new ModuleDownloader(mockPlatform, mockClient);
+
+    const metadata = await mockClient.getDeviceCode('org.httpbin.broken');
+    const module = new (Modules['org.thingpedia.generic_rest.v1'])('org.httpbin.broken', metadata, downloader);
+
+    // assert that we cannot actually load this device
+    await assert.rejects(() => module.getDeviceFactory(), ImplementationError);
+}
+
 async function main() {
     await testBasic();
     await testOAuth();
     await testBasicAuth();
+    await testBroken();
 }
 
 module.exports = main;

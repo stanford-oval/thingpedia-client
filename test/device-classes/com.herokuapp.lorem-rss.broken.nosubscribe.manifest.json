@@ -1,0 +1,45 @@
+{
+  "kind": "com.herokuapp.lorem-rss",
+  "module_type": "org.thingpedia.rss",
+  "version": 1,
+
+  "auth": {
+    "type": "none"
+  },
+  "params": {},
+
+  "queries": {
+    "feed": {
+      "args": [
+        {
+          "name": "title",
+          "type": "String",
+          "is_input": false,
+          "is_required": false
+        },
+        {
+          "name": "link",
+          "type": "Entity(tt:url)",
+          "is_input": false,
+          "is_required": false
+        },
+        {
+          "name": "description",
+          "type": "String",
+          "is_input": false,
+          "is_required": false
+        },
+        {
+          "name": "updated_time",
+          "type": "Date",
+          "is_input": false,
+          "is_required": false
+        }
+      ],
+      "url": "http://lorem-rss.herokuapp.com/feed",
+      "is_list": false,
+      "poll_interval": 0
+    }
+  },
+  "actions": {}
+}
