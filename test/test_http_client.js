@@ -232,14 +232,10 @@ async function testGetDeviceList(klass) {
             assertNonEmptyString(device.name);
             assertNonEmptyString(device.description);
             assertNonEmptyString(device.primary_kind);
-            assertNonEmptyString(device.module_type);
             assertNonEmptyString(device.category);
             assertNonEmptyString(device.subcategory);
             if (klass)
                 assert.deepStrictEqual(device.category, klass);
-
-            assert.deepStrictEqual(typeof device.approved_version, 'number');
-            assert.deepStrictEqual(typeof device.developer_version, 'number');
 
             // no duplicates
             assert(!publicDevices.has(device.primary_kind));
@@ -257,14 +253,6 @@ async function testGetDeviceList(klass) {
             const device = page[j];
             assert(!developerDevices.has(device.primary_kind));
             developerDevices.add(device.primary_kind);
-
-            // every developer device should be a public device if
-            // the approved version is not null
-            // this is a quick and dirty way to catch pagination errors
-            if (device.approved_version !== null) {
-                assert(publicDevices.has(device.primary_kind),
-                       'Lost device ' + device.primary_kind);
-            }
         }
         if (page.length <= 10)
             break;
