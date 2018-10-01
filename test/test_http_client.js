@@ -271,7 +271,7 @@ function manifestEqual(m1, m2) {
     let fields = Object.keys(m1);
     for (let i = 0; i < fields.length; i++) {
         let field = fields[i];
-        if (field === 'examples' || field === 'types' || field === 'child_types' || field === 'version' || field === 'developer' || field === 'triggers')
+        if (field === 'examples' || field === 'types' || field === 'child_types' || field === 'version' || field === 'developer')
             continue;
         if (!(field in m2)) {
             console.log(`${field} missing: ${JSON.stringify(m1)}, ${JSON.stringify(m2)}`);
