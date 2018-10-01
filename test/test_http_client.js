@@ -10,6 +10,7 @@
 "use strict";
 
 const assert = require('assert');
+const ThingTalk = require('thingtalk');
 
 const HttpClient = require('../lib/http_client');
 
@@ -266,6 +267,90 @@ async function testGetDeviceList(klass) {
     }
 }
 
+function manifestEqual(m1, m2) {
+    let fields = Object.keys(m1);
+    for (let i = 0; i < fields.length; i++) {
+        let field = fields[i];
+        if (field === 'examples' || field === 'types' || field === 'child_types' || field === 'version' || field === 'developer' || field === 'triggers')
+            continue;
+        if (!(field in m2)) {
+            console.log(`${field} missing: ${JSON.stringify(m1)}, ${JSON.stringify(m2)}`);
+            return false;
+        }
+        if (!objectEqual(m1[field], m2[field])) {
+            console.log(`${field} differs:`);
+            console.log(JSON.stringify(m1[field]));
+            console.log(JSON.stringify(m2[field]));
+            return false;
+        }
+    }
+    return true;
+}
+
+function objectEqual(o1, o2) {
+    if (typeof o1 !== typeof o2)
+        return false;
+    if (typeof o1 !== 'object') {
+        if (o1 === 'URL' && o2 === 'Entity(tt:url)')
+            return true;
+        if (o1 !== o2)
+            console.log(o1, o2);
+        return o1 === o2;
+    }
+    let fields = Object.keys(o1);
+    for (let i = 0; i < fields.length; i++) {
+        let field = fields[i];
+        if (!(field in o2)) {
+            console.log(`missing field ${field}`)
+            return false;
+        }
+        if (Array.isArray(o1[field]) && !arrayEqual(o1[field], o2[field]))
+            return false;
+        if (!objectEqual(o1[field], o2[field]))
+            return false;
+    }
+    return true;
+}
+
+function arrayEqual(a1, a2) {
+    if (!Array.isArray(a1) || !Array.isArray(a2))
+        return false;
+    if (a1.length !== a2.length)
+        return false;
+    for (let i = 0; i < a1.length; i++) {
+        if (!objectEqual(a1[i], a2[i]))
+            return false;
+    }
+    return true;
+}
+
+// test the compatibility of new thingtalk meta language
+async function testManifestToTT(klass) {
+    for (let i = 0; ; i++) {
+        const {devices: page} = await _httpClient.getDeviceList(klass, i, 10);
+        for (let j = 0; j < Math.min(page.length, 10); j++) {
+            const device = page[j];
+            const manifest = await _httpClient.getDeviceCode(device.primary_kind);
+            manifest.name = device.primary_kind;
+            manifest.description = '';
+            // only test org.thingpedia.v2 for now
+            if (manifest.module_type !== 'org.thingpedia.v2')
+                continue;
+            // for some reason, 'is_list' is missing in instagram manifest
+            // linked in has 'default' left from old generic rest manifest
+            // slack, twitter have 'label' - confirmation in the older version of manifest
+            if (manifest.name === 'com.instagram' || manifest.name === 'com.linkedin' || manifest.name === 'com.slack' || manifest.name === 'com.twitter')
+                continue;
+            console.log(`Testing to/from manifest for ${manifest.name} ...`);
+            const tt = ThingTalk.Ast.fromManifest(manifest);
+            const generated = ThingTalk.Ast.toManifest(tt);
+            assert(manifestEqual(manifest, generated));
+        }
+        if (page.length <= 10)
+            break;
+    }
+}
+
 async function testGetDeviceListErrorCases() {
     await assert.rejects(() => _httpClient.getDeviceList('foo'));
 }
@@ -438,6 +523,7 @@ async function main() {
     await testGetModuleLocation();
     await testGetSchemas();
     await testGetMetas();
+    await testManifestToTT();
 
     await testGetDeviceList();
     await testGetDeviceList('online');
