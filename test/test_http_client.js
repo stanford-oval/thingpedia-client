@@ -331,18 +331,16 @@ async function testManifestToTT(klass) {
         for (let j = 0; j < Math.min(page.length, 10); j++) {
             const device = page[j];
             const manifest = await _httpClient.getDeviceCode(device.primary_kind);
-            manifest.name = device.primary_kind;
-            manifest.description = '';
             // only test org.thingpedia.v2 for now
             if (manifest.module_type !== 'org.thingpedia.v2')
                 continue;
             // for some reason, 'is_list' is missing in instagram manifest
             // linked in has 'default' left from old generic rest manifest
             // slack, twitter have 'label' - confirmation in the older version of manifest
-            if (manifest.name === 'com.instagram' || manifest.name === 'com.linkedin' || manifest.name === 'com.slack' || manifest.name === 'com.twitter')
+            if (['com.instagram', 'com.linkedin', 'com.slack', 'com.twitter'].includes(device.primary_kind))
                 continue;
-            console.log(`Testing to/from manifest for ${manifest.name} ...`);
-            const tt = ThingTalk.Ast.fromManifest(manifest);
+            console.log(`Testing to/from manifest for ${device.primary_kind} ...`);
+            const tt = ThingTalk.Ast.fromManifest(device.primary_kind, manifest);
             const generated = ThingTalk.Ast.toManifest(tt);
             assert(manifestEqual(manifest, generated));
         }
