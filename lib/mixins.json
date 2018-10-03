@@ -22,7 +22,15 @@
       ]
     },
     {
-      "kind": "org.thingpedia.generic_rest",
+      "kind": "org.thingpedia.generic_rest.v1",
+      "args": [],
+      "types": [],
+      "required": [],
+      "is_input": [],
+      "facets": [ "loader" ]
+    },
+    {
+      "kind": "org.thingpedia.rss",
       "args": [],
       "types": [],
       "required": [],

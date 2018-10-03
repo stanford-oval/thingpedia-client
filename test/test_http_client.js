@@ -300,8 +300,10 @@ function objectEqual(o1, o2) {
     let fields = Object.keys(o1);
     for (let i = 0; i < fields.length; i++) {
         let field = fields[i];
+        if (field === 'confirmation_remote' || field === 'API Endpoint URL')
+            continue;
         if (!(field in o2)) {
-            console.log(`missing field ${field}`)
+            console.log(`missing field ${field}`);
             return false;
         }
         if (Array.isArray(o1[field]) && !arrayEqual(o1[field], o2[field]))
@@ -332,7 +334,7 @@ async function testManifestToTT(klass) {
             const device = page[j];
             const manifest = await _httpClient.getDeviceCode(device.primary_kind);
             // only test org.thingpedia.v2 for now
-            if (manifest.module_type !== 'org.thingpedia.v2')
+            if (!(['org.thingpedia.v2', 'org.thingpedia.rss', 'org.thingpedia.generic_rest.v1'].includes(manifest.module_type)))
                 continue;
             // for some reason, 'is_list' is missing in instagram manifest
             // linked in has 'default' left from old generic rest manifest
