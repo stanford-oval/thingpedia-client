@@ -271,7 +271,7 @@ function manifestEqual(m1, m2) {
     let fields = Object.keys(m1);
     for (let i = 0; i < fields.length; i++) {
         let field = fields[i];
-        if (field === 'examples' || field === 'types' || field === 'child_types' || field === 'version' || field === 'developer')
+        if (field === 'examples' || field === 'developer' || field === 'category' || field === 'subcategory')
             continue;
         if (!(field in m2)) {
             console.log(`${field} missing: ${JSON.stringify(m1)}, ${JSON.stringify(m2)}`);
@@ -341,6 +341,7 @@ async function testManifestToTT(klass) {
                 continue;
             console.log(`Testing to/from manifest for ${device.primary_kind} ...`);
             const tt = ThingTalk.Ast.fromManifest(device.primary_kind, manifest);
+            await tt.typecheck(new ThingTalk.SchemaRetriever(_httpClient));
             const generated = ThingTalk.Ast.toManifest(tt);
             assert(manifestEqual(manifest, generated));
         }
