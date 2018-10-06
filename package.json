@@ -12,6 +12,7 @@
   ],
   "main": "index.js",
   "dependencies": {
+    "thingtalk": "git://github.com/Stanford-Mobisocial-IoT-Lab/ThingTalk",
     "thingpedia": "^2.2.1",
     "tmp": "0.0.33"
   },
