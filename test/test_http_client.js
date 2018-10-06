@@ -9,6 +9,8 @@
 // See LICENSE for details
 "use strict";
 
+require('./mock');
+
 const assert = require('assert');
 const ThingTalk = require('thingtalk');
 
@@ -34,45 +36,39 @@ const _mockDeveloperPlatform = {
         return 'en-US';
     }
 };
-const THINGPEDIA_URL = process.env.THINGPEDIA_URL || 'https://thingpedia.stanford.edu/thingpedia';
+const THINGPEDIA_URL = process.env.THINGPEDIA_URL || 'https://almond-dev.stanford.edu/thingpedia';
 
 const _httpClient = new HttpClient(_mockPlatform, THINGPEDIA_URL);
+const _schemaRetriever = new ThingTalk.SchemaRetriever(_httpClient, null, true);
 const _developerHttpClient = new HttpClient(_mockDeveloperPlatform, THINGPEDIA_URL);
+//const _developerSchemaRetriever = new ThingTalk.SchemaRetriever(_developerHttpClient, null, true);
 
-function checkValidManifest(manifest, moduleType) {
-    assert.strictEqual(manifest.module_type, moduleType);
+async function checkValidManifest(manifest, moduleType) {
+    const parsed = await ThingTalk.Grammar.parseAndTypecheck(manifest, _schemaRetriever);
+    assert(parsed.isMeta);
+    assert.strictEqual(parsed.classes.length, 1);
+    assert.strictEqual(parsed.datasets.length, 0);
 
-    assert.ok(manifest.category);
-    assert.ok(manifest.subcategory);
-    assert(Array.isArray(manifest.types));
-    assert(Array.isArray(manifest.child_types));
-    assert(typeof manifest.auth === 'object');
-    assert(typeof manifest.queries === 'object');
-    assert(typeof manifest.actions === 'object');
-    assert(manifest.name === undefined ||
-           (typeof manifest.name === 'string' &&
-            manifest.name !== ''));
-    assert(manifest.description === undefined ||
-           (typeof manifest.description === 'string' &&
-            manifest.description !== ''));
-    assert(typeof manifest.version === 'number');
+    const classDef = parsed.classes[0];
+    assert.strictEqual(classDef.loader.module, moduleType);
+    assert(classDef.annotations.version.isNumber);
 }
 
 async function testGetDeviceCode() {
     const nytimes = await _httpClient.getDeviceCode('com.nytimes');
-    checkValidManifest(nytimes, 'org.thingpedia.rss');
+    await checkValidManifest(nytimes, 'org.thingpedia.rss');
 
     const bing = await _httpClient.getDeviceCode('com.bing');
-    checkValidManifest(bing, 'org.thingpedia.v2');
+    await checkValidManifest(bing, 'org.thingpedia.v2');
 
     const test = await _httpClient.getDeviceCode('org.thingpedia.builtin.test');
-    checkValidManifest(test, 'org.thingpedia.builtin');
+    await checkValidManifest(test, 'org.thingpedia.builtin');
 
     await assert.rejects(async () => {
         await _httpClient.getDeviceCode('org.thingpedia.builtin.test.invisible');
     });
     const invisibleTest = await _developerHttpClient.getDeviceCode('org.thingpedia.builtin.test.invisible');
-    checkValidManifest(invisibleTest, 'org.thingpedia.builtin');
+    await checkValidManifest(invisibleTest, 'org.thingpedia.builtin');
 
     await assert.rejects(async () => {
         await _httpClient.getDeviceCode('org.thingpedia.builtin.test.nonexistent');
@@ -80,152 +76,73 @@ async function testGetDeviceCode() {
 }
 
 async function testGetModuleLocation() {
-    const test = await _httpClient.getModuleLocation('org.thingpedia.builtin.test');
-    assert(/^.*\/org\.thingpedia\.builtin\.test-v[0-9]+\.zip$/.test(test),
+    const test = await _httpClient.getModuleLocation('com.bing');
+    assert(/^.*\/com\.bing-v[0-9]+\.zip$/.test(test),
           'Invalid response, got ' + test);
 
-    const test2 = await _developerHttpClient.getModuleLocation('org.thingpedia.builtin.test');
-    assert(/^.*\/org\.thingpedia\.builtin\.test-v[0-9]+\.zip$/.test(test2),
-          'Invalid response, got ' + test2);
+    // builtin.test is not downloadable
+    await assert.rejects(async () => {
+        await _httpClient.getModuleLocation('org.thingpedia.builtin.test');
+    });
 
     await assert.rejects(async () => {
         await _httpClient.getModuleLocation('org.thingpedia.builtin.test.invisible');
     });
-    await _developerHttpClient.getModuleLocation('org.thingpedia.builtin.test.invisible');
 
     await assert.rejects(async () => {
         await _httpClient.getModuleLocation('org.thingpedia.builtin.test.nonexistent');
     });
 }
 
-async function testGetSchemas() {
-    const single = await _httpClient.getSchemas(['com.bing']);
+async function testGetSchemas(withMetadata) {
+    const bing = await _httpClient.getSchemas(['com.bing'], withMetadata);
+    const bingparsed = ThingTalk.Grammar.parse(bing);
+    assert(bingparsed.isMeta);
+    assert.strictEqual(bingparsed.classes.length, 1);
+    assert.strictEqual(bingparsed.classes[0].kind, 'com.bing');
 
-    assert.deepStrictEqual(typeof single['com.bing'], 'object');
-    assert.deepStrictEqual(typeof single['com.bing'].queries, 'object');
-    assert.deepStrictEqual(typeof single['com.bing'].actions, 'object');
-    assert.deepStrictEqual(typeof single['com.bing'].queries['web_search'], 'object');
-    assert.deepStrictEqual(typeof single['com.bing'].queries['image_search'], 'object');
+    const multiple = await _httpClient.getSchemas(['com.bing', 'com.twitter'], withMetadata);
+    const mparsed = ThingTalk.Grammar.parse(multiple);
+    assert(mparsed.isMeta);
+    assert.strictEqual(mparsed.classes.length, 2);
+    assert.strictEqual(mparsed.classes[0].kind, 'com.bing');
+    assert.strictEqual(mparsed.classes[1].kind, 'com.twitter');
 
-    const multiple = await _httpClient.getSchemas(['com.bing', 'com.twitter']);
+    assert(multiple.startsWith(bing));
 
-    assert.deepStrictEqual(typeof multiple['com.bing'], 'object');
-    assert.deepStrictEqual(typeof multiple['com.twitter'], 'object');
-    assert.deepStrictEqual(typeof multiple['com.twitter'].queries, 'object');
-    assert.deepStrictEqual(typeof multiple['com.twitter'].actions, 'object');
-    assert.deepStrictEqual(single['com.bing'], multiple['com.bing']);
+    const invisible = await _httpClient.getSchemas(['org.thingpedia.builtin.test.invisible'], withMetadata);
+    assert.deepStrictEqual(invisible, ``);
 
-    const invisible = await _httpClient.getSchemas(['org.thingpedia.builtin.test.invisible']);
-    assert.deepStrictEqual(invisible, {
-        'org.thingpedia.builtin.test.invisible': {
-            kind_type: 'primary',
-            triggers: {},
-            queries: {},
-            actions: {}
-        }
-    });
-    const invisible2 = await _developerHttpClient.getSchemas(['org.thingpedia.builtin.test.invisible']);
-    assert.deepStrictEqual(typeof invisible2['org.thingpedia.builtin.test.invisible'], 'object');
-    assert.deepStrictEqual(typeof invisible2['org.thingpedia.builtin.test.invisible'].queries, 'object');
-    assert.deepStrictEqual(typeof invisible2['org.thingpedia.builtin.test.invisible'].actions, 'object');
-    assert.deepStrictEqual(typeof invisible2['org.thingpedia.builtin.test.invisible'].actions['eat_data'], 'object');
+    const invisible2 = await _developerHttpClient.getSchemas(['org.thingpedia.builtin.test.invisible'], withMetadata);
+    const invparsed = ThingTalk.Grammar.parse(invisible2);
+    assert(invparsed.isMeta);
+    assert.strictEqual(invparsed.classes.length, 1);
+    assert.strictEqual(invparsed.classes[0].kind, 'org.thingpedia.builtin.test.invisible');
 
-    const nonexistent = await _httpClient.getSchemas(['org.thingpedia.builtin.test.nonexistent']);
-    assert.deepStrictEqual(nonexistent, {});
+    const nonexistent = await _httpClient.getSchemas(['org.thingpedia.builtin.test.nonexistent'], withMetadata);
+    assert.deepStrictEqual(nonexistent, ``);
 
-    const mixed = await _httpClient.getSchemas(['com.bing', 'org.thingpedia.builtin.test.invisible', 'org.thingpedia.builtin.test.nonexistent']);
-    assert.deepStrictEqual(mixed, {
-        'org.thingpedia.builtin.test.invisible': {
-            kind_type: 'primary',
-            triggers: {},
-            queries: {},
-            actions: {}
-        },
-        'com.bing': single['com.bing']
-    });
+    const mixed = await _httpClient.getSchemas(['com.bing', 'org.thingpedia.builtin.test.invisible', 'org.thingpedia.builtin.test.nonexistent'], withMetadata);
+    assert.deepStrictEqual(mixed, bing);
 }
 
 function assertNonEmptyString(what) {
     assert(typeof what === 'string' && what, 'Expected a non-empty string, got ' + what);
 }
 
-function checkMetadata(what) {
-    for (let name in what) {
-        assertNonEmptyString(what[name].confirmation);
-        assertNonEmptyString(what[name].canonical);
-        assert.deepStrictEqual(typeof what[name].confirmation_remote, 'string');
-        assert.deepStrictEqual(typeof what[name].is_list, 'boolean');
-        assert.deepStrictEqual(typeof what[name].is_monitorable, 'boolean');
-        assert(Array.isArray(what[name].args));
-        assert(Array.isArray(what[name].schema));
-        assert(Array.isArray(what[name].required));
-        assert(Array.isArray(what[name].is_input));
-        assert(Array.isArray(what[name].questions));
-    }
-}
-
-async function testGetMetas() {
-    const single = await _httpClient.getMetas(['com.bing']);
-
-    assert.deepStrictEqual(typeof single['com.bing'], 'object');
-    assert.deepStrictEqual(typeof single['com.bing'].queries, 'object');
-    assert.deepStrictEqual(typeof single['com.bing'].actions, 'object');
-    assert.deepStrictEqual(typeof single['com.bing'].queries['web_search'], 'object');
-    assert.deepStrictEqual(typeof single['com.bing'].queries['image_search'], 'object');
-    checkMetadata(single['com.bing'].queries);
-    checkMetadata(single['com.bing'].actions);
-
-    const multiple = await _httpClient.getMetas(['com.bing', 'com.twitter']);
-
-    assert.deepStrictEqual(typeof multiple['com.bing'], 'object');
-    assert.deepStrictEqual(typeof multiple['com.twitter'], 'object');
-    assert.deepStrictEqual(typeof multiple['com.twitter'].queries, 'object');
-    assert.deepStrictEqual(typeof multiple['com.twitter'].actions, 'object');
-    assert.deepStrictEqual(single['com.bing'], multiple['com.bing']);
-
-    const invisible = await _httpClient.getMetas(['org.thingpedia.builtin.test.invisible']);
-    assert.deepStrictEqual(invisible, {
-        'org.thingpedia.builtin.test.invisible': {
-            kind_type: 'primary',
-            triggers: {},
-            queries: {},
-            actions: {}
-        }
-    });
-    const invisible2 = await _developerHttpClient.getMetas(['org.thingpedia.builtin.test.invisible']);
-    assert.deepStrictEqual(typeof invisible2['org.thingpedia.builtin.test.invisible'], 'object');
-    assert.deepStrictEqual(typeof invisible2['org.thingpedia.builtin.test.invisible'].queries, 'object');
-    assert.deepStrictEqual(typeof invisible2['org.thingpedia.builtin.test.invisible'].actions, 'object');
-    assert.deepStrictEqual(typeof invisible2['org.thingpedia.builtin.test.invisible'].actions['eat_data'], 'object');
-
-    const nonexistent = await _httpClient.getMetas(['org.thingpedia.builtin.test.nonexistent']);
-    assert.deepStrictEqual(nonexistent, {});
-
-    const mixed = await _httpClient.getMetas(['com.bing', 'org.thingpedia.builtin.test.invisible', 'org.thingpedia.builtin.test.nonexistent']);
-    assert.deepStrictEqual(mixed, {
-        'org.thingpedia.builtin.test.invisible': {
-            kind_type: 'primary',
-            triggers: {},
-            queries: {},
-            actions: {}
-        },
-        'com.bing': single['com.bing']
-    });
-}
-
 async function testGetDeviceList(klass) {
     const publicDevices = new Set;
 
-    const { devices: page0 } = await _httpClient.getDeviceList(klass);
+    const page0 = await _httpClient.getDeviceList(klass);
 
     // weird values for page are the same as ignored
-    const { devices: pageMinusOne } = await _httpClient.getDeviceList(klass, -1);
+    const pageMinusOne = await _httpClient.getDeviceList(klass, -1);
     assert.deepStrictEqual(pageMinusOne, page0);
-    const { devices: pageInvalid } = await _httpClient.getDeviceList(klass, 'invalid');
+    const pageInvalid = await _httpClient.getDeviceList(klass, 'invalid');
     assert.deepStrictEqual(pageInvalid, page0);
 
     for (let i = 0; ; i++) {
-        const { devices: page } = await _httpClient.getDeviceList(klass, i, 10);
+        const page = await _httpClient.getDeviceList(klass, i, 10);
         if (i === 0)
             assert.deepStrictEqual(page, page0);
         for (let j = 0; j < Math.min(page.length, 10); j++) {
@@ -249,7 +166,7 @@ async function testGetDeviceList(klass) {
     const developerDevices = new Set;
 
     for (let i = 0; ; i++) {
-        const { devices: page } = await _developerHttpClient.getDeviceList(klass, i, 10);
+        const page = await _developerHttpClient.getDeviceList(klass, i, 10);
         for (let j = 0; j < Math.min(page.length, 10); j++) {
             const device = page[j];
             assert(!developerDevices.has(device.primary_kind));
@@ -265,26 +182,6 @@ async function testGetDeviceList(klass) {
         assert(developerDevices.has(pubDevice),
                'Lost device ' + pubDevice);
     }
-}
-
-function manifestEqual(m1, m2) {
-    let fields = Object.keys(m1);
-    for (let i = 0; i < fields.length; i++) {
-        let field = fields[i];
-        if (field === 'examples' || field === 'developer' || field === 'category' || field === 'subcategory')
-            continue;
-        if (!(field in m2)) {
-            console.log(`${field} missing: ${JSON.stringify(m1)}, ${JSON.stringify(m2)}`);
-            return false;
-        }
-        if (!objectEqual(m1[field], m2[field])) {
-            console.log(`${field} differs:`);
-            console.log(JSON.stringify(m1[field]));
-            console.log(JSON.stringify(m2[field]));
-            return false;
-        }
-    }
-    return true;
 }
 
 function objectEqual(o1, o2) {
@@ -329,23 +226,20 @@ function arrayEqual(a1, a2) {
 // test the compatibility of new thingtalk meta language
 async function testManifestToTT(klass) {
     for (let i = 0; ; i++) {
-        const {devices: page} = await _httpClient.getDeviceList(klass, i, 10);
+        const page = await _httpClient.getDeviceList(klass, i, 10);
         for (let j = 0; j < Math.min(page.length, 10); j++) {
             const device = page[j];
-            const manifest = await _httpClient.getDeviceCode(device.primary_kind);
-            // only test org.thingpedia.v2 for now
-            if (!(['org.thingpedia.v2', 'org.thingpedia.rss', 'org.thingpedia.generic_rest.v1'].includes(manifest.module_type)))
-                continue;
-            // for some reason, 'is_list' is missing in instagram manifest
-            // linked in has 'default' left from old generic rest manifest
-            // slack, twitter have 'label' - confirmation in the older version of manifest
-            if (['com.instagram', 'com.linkedin', 'com.slack', 'com.twitter'].includes(device.primary_kind))
-                continue;
-            console.log(`Testing to/from manifest for ${device.primary_kind} ...`);
-            const tt = ThingTalk.Ast.fromManifest(device.primary_kind, manifest);
-            await tt.typecheck(new ThingTalk.SchemaRetriever(_httpClient));
+            const ttCode = await _httpClient.getDeviceCode(device.primary_kind);
+            //console.log(ttCode);
+
+            const tt = ThingTalk.Grammar.parse(ttCode);
+            await tt.typecheck(_schemaRetriever);
             const generated = ThingTalk.Ast.toManifest(tt);
-            assert(manifestEqual(manifest, generated));
+            ThingTalk.Ast.fromManifest(device.primary_kind, generated).prettyprint();
+
+            // the generated class can lose some unnecessary info
+            // (eg confirmation_remote) that the original class has
+            //assert.strictEqual(genClass, ttCode);
         }
         if (page.length <= 10)
             break;
@@ -359,8 +253,7 @@ async function testGetDeviceListErrorCases() {
 async function testGetDeviceFactories(klass) {
     const devices = await _httpClient.getDeviceFactories(klass);
 
-    for (let device of devices) {
-        const factory = device.factory;
+    for (let factory of devices) {
         assertNonEmptyString(factory.kind);
         assertNonEmptyString(factory.text);
         assert(['none', 'discovery', 'interactive', 'form', 'oauth2'].indexOf(factory.type) >= 0, 'Invalid factory type ' + factory.type + ' for ' + factory.kind);
@@ -382,13 +275,6 @@ async function testGetDeviceSetup() {
             text: "Bing Search"
         }
     });
-
-    const single2 = await _httpClient.getDeviceSetup2(['com.bing']);
-    assert.deepStrictEqual(single, single2);
-
-    // note: the difference between getDeviceSetup and getDeviceSetup2
-    // occurs only in edge cases that cannot trigger with the current
-    // Thingpedia
 
     const multiple = await _httpClient.getDeviceSetup(['com.bing', 'com.twitter']);
     assert.deepStrictEqual(multiple, {
@@ -477,53 +363,60 @@ async function testGetKindByDiscovery() {
 
 async function testGetExamples() {
     function checkKinds(program, kinds) {
-        let regexp = /@(?:[a-zA-Z_-]+\.)+[a-zA-Z_-]/g;
-
-        let match = regexp.exec(program);
-        while (match !== null) {
-            let kind = match[0].substring(1, match[0].lastIndexOf('.'));
-            assert(kinds.indexOf(kind) >= 0, 'Unexpected kind ' + kind);
-
-            match = regexp.exec(program);
+        for (let [, prim] of program.iteratePrimitives()) {
+            if (prim.selector.isBuiltin)
+                continue;
+            assert(kinds.indexOf(prim.selector.kind) >= 0);
         }
     }
 
-    const byKey = await _httpClient.getExamplesByKey('twitter');
+    const byKey = ThingTalk.Grammar.parse(await _httpClient.getExamplesByKey('twitter'));
+    assert(byKey.isMeta);
+    assert.strictEqual(byKey.classes.length, 0);
+    assert.strictEqual(byKey.datasets.length, 1);
 
-    for (let ex of byKey) {
+    for (let ex of byKey.datasets[0].examples) {
         assert.deepStrictEqual(typeof ex.id, 'number');
-        assert.deepStrictEqual(ex.language, 'en');
-        assertNonEmptyString(ex.utterance);
-        assertNonEmptyString(ex.preprocessed);
-        assertNonEmptyString(ex.target_code);
+        assert(ex.utterances.length > 0);
+        ex.utterances.forEach((u) => assertNonEmptyString(u));
+        assert.strictEqual(ex.utterances.length, ex.preprocessed.length);
+        ex.preprocessed.forEach((p) => assertNonEmptyString(p));
     }
 
-    const byKindsSingle = await _httpClient.getExamplesByKinds(['com.twitter']);
-    for (let ex of byKindsSingle) {
+    const byKindsSingle = ThingTalk.Grammar.parse(await _httpClient.getExamplesByKinds(['com.twitter']));
+    assert(byKindsSingle.isMeta);
+    assert.strictEqual(byKindsSingle.classes.length, 0);
+    assert.strictEqual(byKindsSingle.datasets.length, 1);
+
+    for (let ex of byKindsSingle.datasets[0].examples) {
         assert.deepStrictEqual(typeof ex.id, 'number');
-        assert.deepStrictEqual(ex.language, 'en');
-        assertNonEmptyString(ex.utterance);
-        assertNonEmptyString(ex.preprocessed);
-        assertNonEmptyString(ex.target_code);
-        checkKinds(ex.target_code, ['com.twitter']);
+        assert(ex.utterances.length > 0);
+        ex.utterances.forEach((u) => assertNonEmptyString(u));
+        assert.strictEqual(ex.utterances.length, ex.preprocessed.length);
+        ex.preprocessed.forEach((p) => assertNonEmptyString(p));
+        checkKinds(ex.value, ['com.twitter']);
     }
 
-    const byKindsMultiple = await _httpClient.getExamplesByKinds(['com.twitter', 'com.bing']);
-    for (let ex of byKindsMultiple) {
+    const byKindsMultiple = ThingTalk.Grammar.parse(await _httpClient.getExamplesByKinds(['com.twitter', 'com.bing']));
+    assert(byKindsMultiple.isMeta);
+    assert.strictEqual(byKindsMultiple.classes.length, 0);
+    assert.strictEqual(byKindsMultiple.datasets.length, 1);
+
+    for (let ex of byKindsMultiple.datasets[0].examples) {
         assert.deepStrictEqual(typeof ex.id, 'number');
-        assert.deepStrictEqual(ex.language, 'en');
-        assertNonEmptyString(ex.utterance);
-        assertNonEmptyString(ex.preprocessed);
-        assertNonEmptyString(ex.target_code);
-        checkKinds(ex.target_code, ['com.twitter', 'com.bing']);
+        assert(ex.utterances.length > 0);
+        ex.utterances.forEach((u) => assertNonEmptyString(u));
+        assert.strictEqual(ex.utterances.length, ex.preprocessed.length);
+        ex.preprocessed.forEach((p) => assertNonEmptyString(p));
+        checkKinds(ex.value, ['com.twitter', 'com.bing']);
     }
 }
 
 async function main() {
     await testGetDeviceCode();
     await testGetModuleLocation();
-    await testGetSchemas();
-    await testGetMetas();
+    await testGetSchemas(false);
+    await testGetSchemas(true);
     await testManifestToTT();
 
     await testGetDeviceList();
