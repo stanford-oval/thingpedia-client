@@ -20,9 +20,6 @@ const { mockClient, mockEngine } = require('./mock');
 const factory = new DeviceFactory(mockEngine, mockClient);
 
 async function testBasic() {
-    const metadata = await mockClient.getDeviceCode('org.thingpedia.test.mydevice');
-    assert.deepStrictEqual(await factory.getManifest('org.thingpedia.test.mydevice'), metadata);
-
     const deviceFactory = await factory.getFactory('org.thingpedia.test.mydevice');
     assert.strictEqual(deviceFactory, MyDevice);
 }

@@ -1,0 +1,11 @@
+class @org.httpbin.basicauth
+#[version=1] {
+  import loader from @org.thingpedia.generic_rest.v1();
+  import config from @org.thingpedia.config.basic_auth(extra_params=makeArgMap(username:String,password:String));
+
+  query get(in opt input: String #[is_required=true],
+            out authenticated: Boolean #[is_required=false],
+            out user: String #[is_required=false])
+  #[url="https://httpbin.org/basic-auth/fake-user/${input}"];
+}
+

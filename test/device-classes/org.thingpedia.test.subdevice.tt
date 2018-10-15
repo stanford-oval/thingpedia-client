@@ -1,0 +1,11 @@
+class @org.thingpedia.test.subdevice
+#[version=1] {
+  import loader from @org.thingpedia.v2();
+  import config from @org.thingpedia.config.none();
+
+  monitorable query get_data(out data: String #[is_required=false])
+  #[poll_interval=1000ms];
+
+  action eat_data(in opt data: String #[is_required=true]);
+}
+

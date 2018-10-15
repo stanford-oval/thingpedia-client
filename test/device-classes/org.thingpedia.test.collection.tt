@@ -1,0 +1,7 @@
+class @org.thingpedia.test.collection
+#[version=1]
+#[child_types=["org.thingpedia.test.subdevice"]] {
+  import loader from @org.thingpedia.v2();
+  import config from @org.thingpedia.config.none();
+}
+

@@ -34,6 +34,11 @@ if (!assert.rejects) {
 const path = require('path');
 const child_process = require('child_process');
 const os = require('os');
+const fs = require('fs');
+const util = require('util');
+
+const ThingTalk = require('thingtalk');
+const BaseClient = require('../lib/base_client');
 
 const _unzipApi = {
     unzip(zipPath, dir) {
@@ -77,13 +82,13 @@ const mockPlatform = {
     }
 };
 
-const mockClient = {
+class MockClient extends BaseClient {
     async getModuleLocation(id) {
         if (id === 'com.xkcd')
             return 'https://d1ge76rambtuys.cloudfront.net/devices/com.xkcd-v91.zip';
         else
             throw new Error('invalid id');
-    },
+    }
 
     async getDeviceCode(kind) {
         switch (kind) {
@@ -101,15 +106,19 @@ const mockClient = {
         case 'org.httpbin.broken':
         case 'com.herokuapp.lorem-rss':
         case 'com.herokuapp.lorem-rss.broken.hasaction':
-        case 'com.herokuapp.lorem-rss.broken.nosubscribe':
-            return require('./device-classes/' + kind + '.manifest.json');
+        case 'com.herokuapp.lorem-rss.broken.nosubscribe': {
+            const pathname = path.resolve(path.dirname(module.filename),
+                                          `./device-classes/${kind}.tt`);
+            return util.promisify(fs.readFile)(pathname, { encoding: 'utf8' });
+        }
         default:
             assert.fail('Invalid device ' + kind);
             // quiet eslint
             return null;
         }
     }
-};
+}
+const mockClient = new MockClient();
 
 const mockEngine = {
     get platform() {
@@ -144,4 +153,8 @@ class State {
     }
 }
 
-module.exports = { mockPlatform, mockClient, mockEngine, State };
+function toManifest(classCode) {
+    return ThingTalk.Ast.toManifest(ThingTalk.Grammar.parse(classCode));
+}
+
+module.exports = { toManifest, mockPlatform, mockClient, mockEngine, State };

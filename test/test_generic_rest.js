@@ -13,7 +13,7 @@
 const assert = require('assert');
 const Tp = require('thingpedia');
 
-const { mockClient, mockPlatform, mockEngine, State } = require('./mock');
+const { toManifest, mockClient, mockPlatform, mockEngine, State } = require('./mock');
 const { ImplementationError } = require('../lib/modules/errors');
 
 const Modules = require('../lib/modules');
@@ -54,7 +54,7 @@ async function testPoll(instance, fn) {
 }
 
 async function testBasic() {
-    const metadata = await mockClient.getDeviceCode('org.httpbin');
+    const metadata = toManifest(await mockClient.getDeviceCode('org.httpbin'));
 
     const downloader = new ModuleDownloader(mockPlatform, mockClient);
     const module = new (Modules['org.thingpedia.generic_rest.v1'])('org.httpbin', metadata, downloader);
@@ -81,12 +81,6 @@ async function testBasic() {
     }]);
     assert.strictEqual(typeof factory.prototype.subscribe_get_nomonitor, 'function');
     assert.throws(() => instance.subscribe_get_nomonitor({}, new State));
-
-    assert.deepStrictEqual(await instance.get_get_poll_compat({}), [{
-        url: 'https://httpbin.org/get',
-        user_agent: "Thingpedia/1.0.0 nodejs/" + process.version
-    }]);
-    await testPoll(instance, 'get_poll_compat');
 
     assert.deepStrictEqual(await instance.get_get_args({ input: 'foo' }), [{
         output: 'foo'
@@ -117,7 +111,7 @@ function assertIsGetter(object, prop, { configurable, enumerable }) {
 }
 
 async function testOAuth() {
-    const metadata = await mockClient.getDeviceCode('org.httpbin.oauth');
+    const metadata = toManifest(await mockClient.getDeviceCode('org.httpbin.oauth'));
 
     const downloader = new ModuleDownloader(mockPlatform, mockClient);
     const module = new (Modules['org.thingpedia.generic_rest.v1'])('org.httpbin.oauth', metadata, downloader);
@@ -144,7 +138,7 @@ async function testOAuth() {
 }
 
 async function testBasicAuth() {
-    const metadata = await mockClient.getDeviceCode('org.httpbin.basicauth');
+    const metadata = toManifest(await mockClient.getDeviceCode('org.httpbin.basicauth'));
 
     const downloader = new ModuleDownloader(mockPlatform, mockClient);
     const module = new (Modules['org.thingpedia.generic_rest.v1'])('org.httpbin.basicauth', metadata, downloader);
@@ -173,7 +167,7 @@ async function testBroken() {
 
     const downloader = new ModuleDownloader(mockPlatform, mockClient);
 
-    const metadata = await mockClient.getDeviceCode('org.httpbin.broken');
+    const metadata = toManifest(await mockClient.getDeviceCode('org.httpbin.broken'));
     const module = new (Modules['org.thingpedia.generic_rest.v1'])('org.httpbin.broken', metadata, downloader);
 
     // assert that we cannot actually load this device
