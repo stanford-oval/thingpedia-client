@@ -14,6 +14,7 @@ async function seq(array) {
 }
 
 seq([
+    ('./test_unit'),
     ('./test_api'),
     ('./test_http_client'),
     ('./test_v2_device'),
