@@ -3,14 +3,13 @@ class @com.herokuapp.lorem-rss.broken.hasaction
   import loader from @org.thingpedia.rss();
   import config from @org.thingpedia.config.none();
 
-  monitorable query feed(out title: String #[is_required=false],
-                         out link: Entity(tt:url) #[is_required=false],
-                         out description: String #[is_required=false],
-                         out updated_time: Date #[is_required=false])
+  monitorable query feed(out title: String,
+                         out link: Entity(tt:url),
+                         out description: String,
+                         out updated_time: Date)
   #[poll_interval=60000ms]
   #[url="http://lorem-rss.herokuapp.com/feed"];
 
-  action post_action(in opt input: String #[is_required=true])
+  action post_action(in req input: String)
   #[url="https://httpbin.org/post"];
 }
-
