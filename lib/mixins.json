@@ -72,6 +72,14 @@
       "facets": [ "config" ]
     },
     {
+      "kind": "org.thingpedia.config.discovery",
+      "args": [ "protocol" ],
+      "types": [ "Enum(upnp,bluetooth)" ],
+      "required": [ true ],
+      "is_input": [ true ],
+      "facets": [ "config" ]
+    },
+    {
       "kind": "org.thingpedia.config.form",
       "args": [ "params" ],
       "types": [ "ArgMap"],
