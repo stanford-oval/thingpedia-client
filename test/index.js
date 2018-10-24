@@ -17,6 +17,7 @@ seq([
     ('./test_unit'),
     ('./test_api'),
     ('./test_http_client'),
+    ('./test_builtin'),
     ('./test_v2_device'),
     ('./test_generic_rest'),
     ('./test_rss_device'),
