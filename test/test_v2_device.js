@@ -215,12 +215,24 @@ async function testThingpedia() {
     assert.strictEqual(typeof factory.prototype.subscribe_random_comic, 'function');
 }
 
+async function testPkgVersion() {
+    const downloader = new ModuleDownloader(mockPlatform, mockClient);
+    const module = await downloader.getModule('org.thingpedia.test.pkgversion');
+
+    assert.strictEqual(module.id, 'org.thingpedia.test.pkgversion');
+    assert.strictEqual(module.version, 2);
+    assert.strictEqual(module.package_version, 0);
+
+    await module.getDeviceFactory();
+}
+
 async function main() {
     await testPreloaded();
     await testSubdevice();
     await testBrokenDevices();
     await testThingpedia();
     await testDownloader();
+    await testPkgVersion();
 }
 module.exports = main;
 if (!module.parent)

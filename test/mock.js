@@ -93,6 +93,7 @@ class MockClient extends BaseClient {
     async getDeviceCode(kind) {
         switch (kind) {
         case 'org.thingpedia.test.mydevice':
+        case 'org.thingpedia.test.pkgversion':
         case 'org.thingpedia.test.collection':
         case 'org.thingpedia.test.subdevice':
         case 'org.thingpedia.test.broken':
@@ -154,7 +155,13 @@ class State {
 }
 
 function toManifest(classCode) {
-    return ThingTalk.Ast.toManifest(ThingTalk.Grammar.parse(classCode));
+    const classDef = ThingTalk.Grammar.parse(classCode).classes[0];
+    const manifest = classDef.toManifest();
+    if (classDef.annotations.package_version)
+        manifest.package_version = classDef.annotations.package_version.toJS();
+    else
+        manifest.package_version = manifest.version;
+    return manifest;
 }
 
 module.exports = { toManifest, mockPlatform, mockClient, mockEngine, State };
