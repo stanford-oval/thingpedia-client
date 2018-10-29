@@ -42,7 +42,8 @@ async function testQuery() {
         { name: 'org.thingpedia.test.broken.nosubscribe', version: 1 },
         { name: 'org.thingpedia.test.collection', version: 1 },
         { name: 'org.thingpedia.test.mydevice', version: 1 },
-        { name: 'org.thingpedia.test.subdevice', version: 1 }
+        { name: 'org.thingpedia.test.pkgversion', version: 2 },
+        { name: 'org.thingpedia.test.subdevice', version: 1 },
     ]);
 }
 
