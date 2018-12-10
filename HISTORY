@@ -1,3 +1,14 @@
+0.2.0
+=====
+
+* API change: HttpClient.lookupEntity was changed to return an object with `data`
+  and `meta` properties, rather than an Array with a `meta` property; this is for
+  compatibility with JSON serialization
+* OAuth 2.0 helpers are now applied to all devices, if a different OAuth implementation
+  is not provided
+* Generic REST devices support more parameter types, and therefore are compatible
+  with more APIs
+
 0.1.0
 =====
 
