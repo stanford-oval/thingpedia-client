@@ -37,8 +37,8 @@ async function testPoll(instance, fn) {
                     assert.fail('too many results');
                 delete data.__timestamp;
                 assert.deepStrictEqual(data, {
-                    url: 'https://httpbin.org/get',
-                    user_agent: "Thingpedia/1.0.0 nodejs/" + process.version
+                    url: new Tp.Value.Entity('https://httpbin.org/get', null),
+                    user_agent: new Tp.Value.Entity("Thingpedia/1.0.0 nodejs/" + process.version, null)
                 });
                 count++;
                 if (count === 2) {
@@ -70,14 +70,14 @@ async function testBasic() {
 
     const instance = new factory(mockEngine, {});
     assert.deepStrictEqual(await instance.get_get({}), [{
-        url: 'https://httpbin.org/get',
-        user_agent: "Thingpedia/1.0.0 nodejs/" + process.version
+        url: new Tp.Value.Entity('https://httpbin.org/get', null),
+        user_agent: new Tp.Value.Entity("Thingpedia/1.0.0 nodejs/" + process.version, null),
     }]);
     await testPoll(instance, 'get');
 
     assert.deepStrictEqual(await instance.get_get_nomonitor({}), [{
-        url: 'https://httpbin.org/get',
-        user_agent: "Thingpedia/1.0.0 nodejs/" + process.version
+        url: new Tp.Value.Entity('https://httpbin.org/get', null),
+        user_agent: new Tp.Value.Entity("Thingpedia/1.0.0 nodejs/" + process.version, null),
     }]);
     assert.strictEqual(typeof factory.prototype.subscribe_get_nomonitor, 'function');
     assert.throws(() => instance.subscribe_get_nomonitor({}, new State));
@@ -90,11 +90,11 @@ async function testBasic() {
     }]);
 
     assert.deepStrictEqual(await instance.get_post_query({ input: 'foo' }), [{
-        url: 'https://httpbin.org/post',
+        url: new Tp.Value.Entity('https://httpbin.org/post', null),
         output: 'foo'
     }]);
     assert.deepStrictEqual(await instance.get_post_query({ input: 'bar' }), [{
-        url: 'https://httpbin.org/post',
+        url: new Tp.Value.Entity('https://httpbin.org/post', null),
         output: 'bar'
     }]);
 
