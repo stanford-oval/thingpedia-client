@@ -4,6 +4,7 @@
   "description": "Thingpedia client-side library",
   "author": "Stanford Mobisocial IoT Lab",
   "license": "GPL-3.0+",
+  "repository": "https://github.com/stanford-oval/thingpedia-client",
   "contributors": [
     {
       "name": "Giovanni Campagna",

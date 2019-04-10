@@ -1,6 +1,6 @@
 # Thingpedia Client-Side Libraries
 
-[![Build Status](https://travis-ci.org/Stanford-Mobisocial-IoT-Lab/thingpedia-client.svg?branch=master)](https://travis-ci.org/Stanford-Mobisocial-IoT-Lab/thingpedia-client) [![Coverage Status](https://coveralls.io/repos/github/Stanford-Mobisocial-IoT-Lab/thingpedia-client/badge.svg?branch=master)](https://coveralls.io/github/Stanford-Mobisocial-IoT-Lab/thingpedia-client?branch=master) [![Dependency Status](https://david-dm.org/Stanford-Mobisocial-IoT-Lab/thingpedia-client/status.svg)](https://david-dm.org/Stanford-Mobisocial-IoT-Lab/thingpedia-client) [![Greenkeeper badge](https://badges.greenkeeper.io/Stanford-Mobisocial-IoT-Lab/thingpedia-client.svg)](https://greenkeeper.io/)
+[![Build Status](https://travis-ci.org/stanford-oval/thingpedia-client.svg?branch=master)](https://travis-ci.org/stanford-oval/thingpedia-client) [![Coverage Status](https://coveralls.io/repos/github/stanford-oval/thingpedia-client/badge.svg?branch=master)](https://coveralls.io/github/stanford-oval/thingpedia-client?branch=master) [![Dependency Status](https://david-dm.org/stanford-oval/thingpedia-client/status.svg)](https://david-dm.org/stanford-oval/thingpedia-client) [![Greenkeeper badge](https://badges.greenkeeper.io/stanford-oval/thingpedia-client.svg)](https://greenkeeper.io/)
 
 ## Knowledge for your Virtual Assistant
 
