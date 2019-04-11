@@ -87,7 +87,7 @@ class MockClient extends BaseClient {
         if (id === 'com.xkcd')
             return 'https://d1ge76rambtuys.cloudfront.net/devices/com.xkcd-v91.zip';
         else
-            throw new Error('invalid id');
+            throw new Error('invalid id ' + id);
     }
 
     async getDeviceCode(kind) {
