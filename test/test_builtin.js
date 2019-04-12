@@ -37,7 +37,47 @@ const Builtins = {
                 return [{ something: 'lol' }];
             }
         }
-    }
+    },
+
+    'org.thingpedia.builtin.test.collection': {
+        class: `class @org.thingpedia.builtin.test.collection
+        #[child_types=["org.thingpedia.builtin.test.subdevice"]] {
+            import loader from @org.thingpedia.builtin();
+            import config from @org.thingpedia.config.none();
+        }`,
+        module: class CollectionBuiltin extends Tp.BaseDevice {
+            constructor(engine, state) {
+                super(engine, state);
+                this.name = "Collection";
+                this.description = "Collection description";
+                this.uniqueId = 'org.thingpedia.builtin.test.collection';
+            }
+        }
+    },
+
+    'org.thingpedia.builtin.test.subdevice': {
+        class: `class @org.thingpedia.builtin.test.subdevice {
+            import loader from @org.thingpedia.embedded();
+            import config from @org.thingpedia.config.none();
+
+            query bla(out something : String);
+        }`,
+        module: class SubdeviceBuiltin extends Tp.BaseDevice {
+            constructor(engine, state) {
+                super(engine, state);
+                this.name = "Subdevice";
+                this.description = "Subdevice description";
+                this.uniqueId = 'org.thingpedia.builtin.test.subdevice';
+            }
+
+            async get_bla() {
+                return [{ something: 'lol' }];
+            }
+        }
+    },
+};
+Builtins['org.thingpedia.builtin.test.collection'].module.subdevices = {
+    'org.thingpedia.builtin.test.subdevice': Builtins['org.thingpedia.builtin.test.subdevice'].module
 };
 
 async function testBasic() {
@@ -47,6 +87,28 @@ async function testBasic() {
     assert.strictEqual(module.id, 'org.thingpedia.builtin.foo');
     assert.strictEqual(module.version, 0); // regardless of what the class code says
     assert.strictEqual(await module.getDeviceFactory(), Builtins['org.thingpedia.builtin.foo'].module);
+    assert(Builtins['org.thingpedia.builtin.foo'].module.metadata);
+    assert.strictEqual(Builtins['org.thingpedia.builtin.foo'].module.metadata.kind, 'org.thingpedia.builtin.foo');
+    assert.strictEqual(typeof Builtins['org.thingpedia.builtin.foo'].module.prototype.subscribe_get, 'function');
+}
+
+async function testCollection() {
+    const downloader = new ModuleDownloader(mockPlatform, mockClient, Builtins);
+    const module = await downloader.getModule('org.thingpedia.builtin.test.collection');
+
+    assert.strictEqual(module.id, 'org.thingpedia.builtin.test.collection');
+    assert.strictEqual(module.version, 0);
+    assert.strictEqual(await module.getDeviceFactory(), Builtins['org.thingpedia.builtin.test.collection'].module);
+
+    assert(Builtins['org.thingpedia.builtin.test.collection'].module.metadata);
+    assert.strictEqual(Builtins['org.thingpedia.builtin.test.collection'].module.metadata.kind,
+        'org.thingpedia.builtin.test.collection');
+    assert.strictEqual(typeof Builtins['org.thingpedia.builtin.test.collection'].module.prototype.subscribe_bla, 'undefined');
+
+    assert(Builtins['org.thingpedia.builtin.test.subdevice'].module.metadata);
+    assert.strictEqual(Builtins['org.thingpedia.builtin.test.subdevice'].module.metadata.kind,
+        'org.thingpedia.builtin.test.subdevice');
+    assert.strictEqual(typeof Builtins['org.thingpedia.builtin.test.subdevice'].module.prototype.subscribe_bla, 'function');
 }
 
 async function main() {
