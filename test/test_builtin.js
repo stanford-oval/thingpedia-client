@@ -15,7 +15,7 @@ const Tp = require('thingpedia');
 
 const ModuleDownloader = require('../lib/downloader');
 
-const { mockClient, mockPlatform } = require('./mock');
+const { mockClient, mockPlatform, mockEngine } = require('./mock');
 
 const Builtins = {
     'org.thingpedia.builtin.foo': {
@@ -111,8 +111,27 @@ async function testCollection() {
     assert.strictEqual(typeof Builtins['org.thingpedia.builtin.test.subdevice'].module.prototype.subscribe_bla, 'function');
 }
 
+async function testUnsupported() {
+    const downloader = new ModuleDownloader(mockPlatform, mockClient, Builtins);
+    const module = await downloader.getModule('org.thingpedia.builtin.test.invalid');
+
+    assert.strictEqual(module.id, 'org.thingpedia.builtin.test.invalid');
+    assert.strictEqual(module.version, 0);
+
+    const _class = await module.getDeviceFactory();
+    const dev = new _class(mockEngine, { kind: 'org.thingpedia.builtin.test.invalid' });
+
+    assert.strictEqual(dev.name, "Invalid Builtin");
+    assert.strictEqual(dev.description, "Invalid Builtin Description");
+    assert.strictEqual(typeof dev.get_foo, 'function');
+    assert.strictEqual(typeof dev.subscribe_foo, 'function');
+    assert.rejects(async () => dev.get_foo(), { code: 'ENOSYS', message: 'This command is not available in this version of Almond' });
+}
+
 async function main() {
     await testBasic();
+    await testCollection();
+    await testUnsupported();
 }
 module.exports = main;
 if (!module.parent)
