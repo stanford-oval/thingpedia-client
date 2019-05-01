@@ -36,6 +36,7 @@ async function testQuery() {
         { name: 'org.httpbin.basicauth', version: 1 },
         { name: 'org.httpbin.broken', version: 1 },
         { name: 'org.httpbin.oauth', version: 1 },
+        { name: 'org.thingpedia.builtin.test.invalid', version: 0 },
         { name: 'org.thingpedia.test.broken', version: 1 },
         { name: 'org.thingpedia.test.broken.noaction', version: 1 },
         { name: 'org.thingpedia.test.broken.noquery', version: 1 },
