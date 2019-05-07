@@ -12,6 +12,7 @@ const HttpClient = require('./lib/http_client');
 const DeviceFactory = require('./lib/factory');
 const ModuleDownloader = require('./lib/downloader');
 const Modules = require('./lib/modules');
+const { ImplementationError, UnsupportedError } = require('./lib/modules/errors');
 
 module.exports = {
     BaseClient,
@@ -20,5 +21,9 @@ module.exports = {
 
     // low-level semi-private API, exposed primarily for testing
     ModuleDownloader,
-    Modules
+    Modules,
+
+    // expose errors
+    ImplementationError,
+    UnsupportedError,
 };
