@@ -13,7 +13,7 @@
 const assert = require('assert');
 const Tp = require('thingpedia');
 
-const { toManifest, mockClient, mockPlatform, mockEngine, State } = require('./mock');
+const { toClassDef, mockClient, mockPlatform, mockEngine, State } = require('./mock');
 const { ImplementationError } = require('../lib/modules/errors');
 
 const Modules = require('../lib/modules');
@@ -54,7 +54,7 @@ async function testPoll(instance, fn) {
 }
 
 async function testBasic() {
-    const metadata = toManifest(await mockClient.getDeviceCode('org.httpbin'));
+    const metadata = toClassDef(await mockClient.getDeviceCode('org.httpbin'));
 
     const downloader = new ModuleDownloader(mockPlatform, mockClient);
     const module = new (Modules['org.thingpedia.generic_rest.v1'])('org.httpbin', metadata, downloader);
@@ -111,7 +111,7 @@ function assertIsGetter(object, prop, { configurable, enumerable }) {
 }
 
 async function testOAuth() {
-    const metadata = toManifest(await mockClient.getDeviceCode('org.httpbin.oauth'));
+    const metadata = toClassDef(await mockClient.getDeviceCode('org.httpbin.oauth'));
 
     const downloader = new ModuleDownloader(mockPlatform, mockClient);
     const module = new (Modules['org.thingpedia.generic_rest.v1'])('org.httpbin.oauth', metadata, downloader);
@@ -138,7 +138,7 @@ async function testOAuth() {
 }
 
 async function testBasicAuth() {
-    const metadata = toManifest(await mockClient.getDeviceCode('org.httpbin.basicauth'));
+    const metadata = toClassDef(await mockClient.getDeviceCode('org.httpbin.basicauth'));
 
     const downloader = new ModuleDownloader(mockPlatform, mockClient);
     const module = new (Modules['org.thingpedia.generic_rest.v1'])('org.httpbin.basicauth', metadata, downloader);
@@ -167,7 +167,7 @@ async function testBroken() {
 
     const downloader = new ModuleDownloader(mockPlatform, mockClient);
 
-    const metadata = toManifest(await mockClient.getDeviceCode('org.httpbin.broken'));
+    const metadata = toClassDef(await mockClient.getDeviceCode('org.httpbin.broken'));
     const module = new (Modules['org.thingpedia.generic_rest.v1'])('org.httpbin.broken', metadata, downloader);
 
     // assert that we cannot actually load this device

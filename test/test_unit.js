@@ -58,24 +58,12 @@ function testFormatString() {
 }
 
 const PARSE_GENERIC_RESPONSE_TEST_CASES = [
-    [{
-        json_key: 'articles',
-        args: [
-            {
-                name: 'title',
-                type: 'String',
-            },
-            {
-                name: 'link',
-                type: 'Entity(tt:url)',
-            },
-            {
-                name: 'picture_url',
-                type: 'Entity(tt:picture)',
-                json_key: 'thumbnail'
-            },
-        ]
-    }, {
+    [`class @foo {
+        query test(out title : String,
+                   out link : Entity(tt:url),
+                   out picture_url : Entity(tt:picture) #[json_key="thumbnail"])
+        #[json_key="articles"];
+    }`, {
         articles: [
             {
                 title: 'Some title',
@@ -101,59 +89,21 @@ const PARSE_GENERIC_RESPONSE_TEST_CASES = [
         }
     ]],
 
-    [{
-        json_key: 'response.value',
-        args: [
-            {
-                name: 'key',
-                type: 'String',
-            },
-            {
-                name: 'object',
-                type: 'Entity(foo:object)',
-            },
-            {
-                name: 'measure1',
-                type: 'Measure(ms)',
-            },
-            {
-                name: 'measure2',
-                type: 'Measure(C)',
-            },
-            {
-                name: 'number1',
-                type: 'Number',
-            },
-            {
-                name: 'number2',
-                type: 'Number',
-            },
-            {
-                name: 'currency1',
-                type: 'Currency',
-            },
-            {
-                name: 'currency2',
-                type: 'Currency',
-            },
-            {
-                name: 'currency3',
-                type: 'Currency',
-            },
-            {
-                name: 'date1',
-                type: 'Date',
-            },
-            {
-                name: 'date2',
-                type: 'Date',
-            },
-            {
-                name: 'date3',
-                type: 'Date',
-            },
-        ]
-    }, {
+    [`class @foo {
+        query test(out key : String,
+                   out object : Entity(foo:object),
+                   out measure1 : Measure(ms),
+                   out measure2 : Measure(C),
+                   out number1 : Number,
+                   out number2 : Number,
+                   out currency1 : Currency,
+                   out currency2 : Currency,
+                   out currency3 : Currency,
+                   out date1 : Date,
+                   out date2 : Date,
+                   out date3 : Date)
+        #[json_key='response.value'];
+    }`, {
         response: {
             value: {
                 key: 'some_key',
@@ -192,27 +142,13 @@ const PARSE_GENERIC_RESPONSE_TEST_CASES = [
         },
     ]],
 
-        [{
-        json_key: 'response.values.0',
-        args: [
-            {
-                name: 'key',
-                type: 'String',
-            },
-            {
-                name: 'hashtags',
-                type: 'Array(Entity(tt:hashtag))',
-            },
-            {
-                name: 'actors',
-                type: 'Array(String)',
-            },
-            {
-                name: 'objects',
-                type: 'Array(Entity(foo:object))',
-            }
-        ]
-    }, {
+    [`class @foo {
+        query test(out key : String,
+                   out hashtags : Array(Entity(tt:hashtag)),
+                   out actors : Array(String),
+                   out objects : Array(Entity(foo:object)))
+        #[json_key="response.values.0"];
+    }`, {
         response: {
             values: [
                 {
@@ -244,9 +180,11 @@ const PARSE_GENERIC_RESPONSE_TEST_CASES = [
 ];
 
 function testParseGenericResponse() {
-    PARSE_GENERIC_RESPONSE_TEST_CASES.forEach(([block, response, expected], i) => {
+    PARSE_GENERIC_RESPONSE_TEST_CASES.forEach(([classcode, response, expected], i) => {
+        const fndef = TT.Grammar.parse(classcode).classes[0].queries.test;
+
         console.log('Test Case #' + (i+1));
-        const generated = Utils.parseGenericResponse(response, block);
+        const generated = Utils.parseGenericResponse(response, fndef);
         assert.deepStrictEqual(generated, expected);
     });
 }

@@ -2,6 +2,7 @@ class @org.thingpedia.builtin.test.invalid
 #_[name="Invalid Builtin"]
 #_[description="Invalid Builtin Description"]
 #[version=0]
+#[package_version=1]
 {
 	import loader from @org.thingpedia.builtin();
 	import config from @org.thingpedia.config.builtin();

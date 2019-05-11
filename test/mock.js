@@ -154,14 +154,8 @@ class State {
     }
 }
 
-function toManifest(classCode) {
-    const classDef = ThingTalk.Grammar.parse(classCode).classes[0];
-    const manifest = classDef.toManifest();
-    if (classDef.annotations.package_version)
-        manifest.package_version = classDef.annotations.package_version.toJS();
-    else
-        manifest.package_version = manifest.version;
-    return manifest;
+function toClassDef(classCode) {
+    return ThingTalk.Grammar.parse(classCode).classes[0];
 }
 
-module.exports = { toManifest, mockPlatform, mockClient, mockEngine, State };
+module.exports = { toClassDef, mockPlatform, mockClient, mockEngine, State };

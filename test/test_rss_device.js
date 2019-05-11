@@ -13,14 +13,14 @@
 const assert = require('assert');
 const Tp = require('thingpedia');
 
-const { toManifest, mockClient, mockPlatform, mockEngine, State } = require('./mock');
+const { toClassDef, mockClient, mockPlatform, mockEngine, State } = require('./mock');
 const { ImplementationError } = require('../lib/modules/errors');
 
 const Modules = require('../lib/modules');
 const ModuleDownloader = require('../lib/downloader');
 
 async function testBasic() {
-    const metadata = toManifest(await mockClient.getDeviceCode('com.herokuapp.lorem-rss'));
+    const metadata = toClassDef(await mockClient.getDeviceCode('com.herokuapp.lorem-rss'));
 
     const downloader = new ModuleDownloader(mockPlatform, mockClient);
     const module = new (Modules['org.thingpedia.rss'])('com.herokuapp.lorem-rss', metadata, downloader);
@@ -100,7 +100,7 @@ async function testBroken() {
     const downloader = new ModuleDownloader(mockPlatform, mockClient);
 
     for (let err of ['hasaction', 'nosubscribe']) {
-        const metadata = toManifest(await mockClient.getDeviceCode('com.herokuapp.lorem-rss.broken.' + err));
+        const metadata = toClassDef(await mockClient.getDeviceCode('com.herokuapp.lorem-rss.broken.' + err));
         const module = new (Modules['org.thingpedia.rss'])('com.herokuapp.lorem-rss.broken.' + err,
                                                            metadata, downloader);
 
