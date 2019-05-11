@@ -12,9 +12,9 @@
 const assert = require('assert');
 const child_process = require('child_process');
 
-const Modules = require('../lib/modules');
+const Modules = require('../lib/loaders');
 const ModuleDownloader = require('../lib/downloader');
-const { ImplementationError } = require('../lib/modules/errors');
+const { ImplementationError } = require('../lib/errors');
 
 const MyDevice = require('./device-classes/org.thingpedia.test.mydevice');
 const { toClassDef, mockClient, mockPlatform, mockEngine, State } = require('./mock');

@@ -14,9 +14,9 @@ const assert = require('assert');
 const Tp = require('thingpedia');
 
 const { toClassDef, mockClient, mockPlatform, mockEngine, State } = require('./mock');
-const { ImplementationError } = require('../lib/modules/errors');
+const { ImplementationError } = require('../lib/errors');
 
-const Modules = require('../lib/modules');
+const Modules = require('../lib/loaders');
 const ModuleDownloader = require('../lib/downloader');
 
 async function testBasic() {
