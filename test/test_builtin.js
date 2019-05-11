@@ -86,7 +86,7 @@ async function testBasic() {
 
     assert.strictEqual(module.id, 'org.thingpedia.builtin.foo');
     assert.strictEqual(module.version, 0); // regardless of what the class code says
-    assert.strictEqual(await module.getDeviceFactory(), Builtins['org.thingpedia.builtin.foo'].module);
+    assert.strictEqual(await module.getDeviceClass(), Builtins['org.thingpedia.builtin.foo'].module);
     assert(Builtins['org.thingpedia.builtin.foo'].module.metadata);
     assert.strictEqual(Builtins['org.thingpedia.builtin.foo'].module.metadata.kind, 'org.thingpedia.builtin.foo');
     assert.strictEqual(typeof Builtins['org.thingpedia.builtin.foo'].module.prototype.subscribe_get, 'function');
@@ -98,7 +98,7 @@ async function testCollection() {
 
     assert.strictEqual(module.id, 'org.thingpedia.builtin.test.collection');
     assert.strictEqual(module.version, 0);
-    assert.strictEqual(await module.getDeviceFactory(), Builtins['org.thingpedia.builtin.test.collection'].module);
+    assert.strictEqual(await module.getDeviceClass(), Builtins['org.thingpedia.builtin.test.collection'].module);
 
     assert(Builtins['org.thingpedia.builtin.test.collection'].module.metadata);
     assert.strictEqual(Builtins['org.thingpedia.builtin.test.collection'].module.metadata.kind,
@@ -118,7 +118,7 @@ async function testUnsupported() {
     assert.strictEqual(module.id, 'org.thingpedia.builtin.test.invalid');
     assert.strictEqual(module.version, 0);
 
-    const _class = await module.getDeviceFactory();
+    const _class = await module.getDeviceClass();
     const dev = new _class(mockEngine, { kind: 'org.thingpedia.builtin.test.invalid' });
 
     assert.strictEqual(dev.name, "Invalid Builtin");

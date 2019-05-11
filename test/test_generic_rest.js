@@ -62,7 +62,7 @@ async function testBasic() {
     assert.strictEqual(module.id, 'org.httpbin');
     assert.strictEqual(module.version, 1);
 
-    const factory = await module.getDeviceFactory();
+    const factory = await module.getDeviceClass();
 
     assert(factory.prototype instanceof Tp.BaseDevice);
     assert.strictEqual(typeof factory.prototype.get_get, 'function');
@@ -119,7 +119,7 @@ async function testOAuth() {
     assert.strictEqual(module.id, 'org.httpbin.oauth');
     assert.strictEqual(module.version, 1);
 
-    const factory = await module.getDeviceFactory();
+    const factory = await module.getDeviceClass();
 
     assertIsGetter(factory.prototype, 'accessToken', {
         configurable: false,
@@ -146,7 +146,7 @@ async function testBasicAuth() {
     assert.strictEqual(module.id, 'org.httpbin.basicauth');
     assert.strictEqual(module.version, 1);
 
-    const factory = await module.getDeviceFactory();
+    const factory = await module.getDeviceClass();
 
     const instance1 = new factory(mockEngine, { username: 'fake-user', password: 'fake-password1' });
     assert.deepStrictEqual(await instance1.get_get({ input: 'fake-password1' }), [{
@@ -171,7 +171,7 @@ async function testBroken() {
     const module = new (Modules['org.thingpedia.generic_rest.v1'])('org.httpbin.broken', metadata, downloader);
 
     // assert that we cannot actually load this device
-    await assert.rejects(() => module.getDeviceFactory(), ImplementationError);
+    await assert.rejects(() => module.getDeviceClass(), ImplementationError);
 }
 
 async function main() {

@@ -28,7 +28,7 @@ async function testBasic() {
     assert.strictEqual(module.id, 'com.herokuapp.lorem-rss');
     assert.strictEqual(module.version, 1);
 
-    const factory = await module.getDeviceFactory();
+    const factory = await module.getDeviceClass();
 
     assert(factory.prototype instanceof Tp.BaseDevice);
     assert.strictEqual(typeof factory.prototype.get_feed, 'function');
@@ -105,7 +105,7 @@ async function testBroken() {
                                                            metadata, downloader);
 
         // assert that we cannot actually load this device
-        await assert.rejects(() => module.getDeviceFactory(), ImplementationError);
+        await assert.rejects(() => module.getDeviceClass(), ImplementationError);
     }
 }
 

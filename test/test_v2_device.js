@@ -40,7 +40,7 @@ async function testPreloaded() {
     assert.strictEqual(module.version, 1);
     assert.strictEqual(module.manifest, metadata);
 
-    const factory = await module.getDeviceFactory();
+    const factory = await module.getDeviceClass();
 
     assert.strictEqual(factory, MyDevice);
     //assert.strictEqual(factory.metadata, metadata);
@@ -131,7 +131,7 @@ async function testPreloaded() {
 
     await module.clearCache();
 
-    const factory2 = await module.getDeviceFactory();
+    const factory2 = await module.getDeviceClass();
     assert(factory2 !== MyDevice);
 }
 
@@ -147,7 +147,7 @@ async function testSubdevice() {
     assert.strictEqual(collectionModule.id, 'org.thingpedia.test.collection');
 
     // this will also load the subdevices
-    const collectionFactory = await collectionModule.getDeviceFactory();
+    const collectionFactory = await collectionModule.getDeviceClass();
 
     assert.strictEqual(typeof collectionFactory.prototype.get_get_data, 'undefined');
     assert.strictEqual(typeof collectionFactory.prototype.do_eat_data, 'undefined');
@@ -172,7 +172,7 @@ async function testBrokenDevices() {
                                                           metadata, downloader);
 
         // assert that we cannot actually load this device
-        await assert.rejects(() => module.getDeviceFactory(), ImplementationError);
+        await assert.rejects(() => module.getDeviceClass(), ImplementationError);
     }
 
     // now load a device where the error is at runtime
@@ -180,7 +180,7 @@ async function testBrokenDevices() {
     const module = new (Modules['org.thingpedia.v2'])('org.thingpedia.test.broken',
                                                       metadata, downloader);
     // this should load correctly
-    const factory = await module.getDeviceFactory();
+    const factory = await module.getDeviceClass();
     const instance = new factory(mockEngine, { kind: 'org.thingpedia.test.broken' });
 
     // the methods in this class don't throw an error, but they
@@ -204,7 +204,7 @@ async function testThingpedia() {
     assert(module.version >= 91);
     assert.strictEqual(module.manifest, metadata);
 
-    const factory = await module.getDeviceFactory();
+    const factory = await module.getDeviceClass();
 
     //assert.strictEqual(factory.metadata, metadata);
     assert.strictEqual(typeof factory.prototype.get_get_comic, 'function');
@@ -221,7 +221,7 @@ async function testPkgVersion() {
     assert.strictEqual(module.version, 2);
     assert.strictEqual(module.package_version, 0);
 
-    await module.getDeviceFactory();
+    await module.getDeviceClass();
 }
 
 async function main() {
