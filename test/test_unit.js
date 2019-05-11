@@ -13,7 +13,7 @@
 const TT = require('thingtalk');
 const assert = require('assert');
 
-const Utils = require('../lib/modules/utils');
+const Utils = require('../lib/utils');
 
 const FORMAT_STRING_TEST_CASES = [
     ['foo ${string}', { string: 'one' }, {}, `foo one`],
