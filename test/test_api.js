@@ -32,6 +32,7 @@ async function testQuery() {
         { name: 'com.herokuapp.lorem-rss.broken.hasaction', version: 1 },
         { name: 'com.herokuapp.lorem-rss.broken.nosubscribe', version: 1 },
         { name: 'com.xkcd', version: 91 },
+        { name: 'edu.stanford.almond-dev', version: 1 },
         { name: 'org.httpbin', version: 1 },
         { name: 'org.httpbin.basicauth', version: 1 },
         { name: 'org.httpbin.broken', version: 1 },

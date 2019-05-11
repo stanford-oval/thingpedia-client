@@ -79,6 +79,10 @@ const mockPlatform = {
         default:
             return null;
         }
+    },
+    getOrigin() {
+        // like almond-server
+        return 'http://127.0.0.1:3000';
     }
 };
 
@@ -92,6 +96,7 @@ class MockClient extends BaseClient {
 
     async getDeviceCode(kind) {
         switch (kind) {
+        case 'edu.stanford.almond-dev':
         case 'org.thingpedia.test.mydevice':
         case 'org.thingpedia.test.pkgversion':
         case 'org.thingpedia.test.collection':

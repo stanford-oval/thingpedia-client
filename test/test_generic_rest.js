@@ -12,6 +12,9 @@
 
 const assert = require('assert');
 const Tp = require('thingpedia');
+const qs = require('qs');
+const Url = require('url');
+const tough = require('tough-cookie');
 
 const { toClassDef, mockClient, mockPlatform, mockEngine, State } = require('./mock');
 const { ImplementationError } = require('../lib/errors');
@@ -137,6 +140,153 @@ async function testOAuth() {
     }]);
 }
 
+function browserRequest(url, method, data, session, options = {}) {
+    if (method === 'POST') {
+        if (data !== null && typeof data !== 'string')
+            data = qs.stringify(data);
+        if (data)
+            data += '&_csrf=' + session.csrfToken;
+        else
+            data = '_csrf=' + session.csrfToken;
+        options.dataContentType = 'application/x-www-form-urlencoded';
+    } else {
+        if (data !== null && typeof data !== 'string') {
+            url += '?' + qs.stringify(data);
+            data = null;
+        }
+    }
+    if (!options.extraHeaders)
+        options.extraHeaders = {};
+    options.extraHeaders.Cookie = session.cookie;
+
+    return Tp.Helpers.Http.request(url, method, data, options);
+}
+
+function assertRedirect(request, redirect) {
+    return request.then(() => {
+        assert.fail(new Error(`Expected HTTP redirect`));
+    }, (err) => {
+        if (!err.detail || !err.code)
+            throw err;
+        if (err.code < 300 || err.code >= 400)
+            throw err;
+
+        return err.redirect;
+    });
+}
+
+function accumulateStream(stream) {
+    return new Promise((resolve, reject) => {
+        const buffers = [];
+        let length = 0;
+        stream.on('data', (buf) => {
+            buffers.push(buf);
+            length += buf.length;
+        });
+        stream.on('end', () => resolve(Buffer.concat(buffers, length)));
+        stream.on('error', reject);
+    });
+}
+
+async function startSession(url) {
+    const loginStream = await Tp.Helpers.Http.getStream(url);
+    const cookieHeader = loginStream.headers['set-cookie'][0];
+    assert(cookieHeader);
+    const cookie = tough.Cookie.parse(cookieHeader);
+
+    const loginResponse = (await accumulateStream(loginStream)).toString();
+    const match = / data-csrf-token="([^"]+)"/.exec(loginResponse);
+    const csrfToken = match[1];
+    return { csrfToken, cookie: cookie.cookieString() };
+}
+
+async function testAlmondOAuth() {
+    const metadata = toClassDef(await mockClient.getDeviceCode('edu.stanford.almond-dev'));
+
+    const downloader = new ModuleDownloader(mockPlatform, mockClient);
+    const module = new (Modules['org.thingpedia.generic_rest.v1'])('edu.stanford.almond-dev', metadata, downloader);
+
+    assert.strictEqual(module.id, 'edu.stanford.almond-dev');
+    assert.strictEqual(module.version, 1);
+
+    const factory = await module.getDeviceClass();
+
+    assertIsGetter(factory.prototype, 'accessToken', {
+        configurable: false,
+        enumerable: true
+    });
+    assertIsGetter(factory.prototype, 'refreshToken', {
+        configurable: false,
+        enumerable: true
+    });
+
+    console.log('start run oauth');
+    const [redirectToAlmond, oauthSession] = await factory.runOAuth2(mockEngine, null);
+
+    assert.strictEqual(typeof oauthSession['oauth2-state-edu.stanford.almond-dev'], 'string');
+    assert.strictEqual(redirectToAlmond, `https://almond-dev.stanford.edu/me/api/oauth2/authorize?response_type=code&redirect_uri=http%3A%2F%2F127.0.0.1%3A3000%2Fdevices%2Foauth2%2Fcallback%2Fedu.stanford.almond-dev&state=${oauthSession['oauth2-state-edu.stanford.almond-dev']}&scope=profile&client_id=5524304f0ce9cb5c`);
+
+    console.log('login + authorize');
+    // login to almond-dev
+    const browserSession = await startSession('https://almond-dev.stanford.edu/user/login');
+    await browserRequest('https://almond-dev.stanford.edu/user/login', 'POST', {
+        username: 'testuser',
+        password: '12345678',
+    }, browserSession);
+
+    // get almond-dev to issue an access token...
+    // note the client ID we use has special test ability skips authorization
+    const redirectToUs = await assertRedirect(browserRequest(redirectToAlmond, 'GET', '', browserSession, {
+        followRedirects: false
+    }));
+
+    console.log('obtained redirect with code');
+    assert(redirectToUs.startsWith('http://127.0.0.1:3000/devices/oauth2/callback/edu.stanford.almond-dev'));
+    const parsedRedirect = Url.parse(redirectToUs, { parseQueryString: true });
+    const req = {
+        httpVersion: 1.0,
+        headers: [],
+        rawHeaders: [],
+
+        method: 'GET',
+        url: redirectToUs,
+        query: parsedRedirect.query,
+        session: oauthSession
+    };
+
+    console.log('second run oauth');
+
+    const mockDevices = {
+        loadOneDevice(state, addToDB) {
+            assert.strictEqual(state.kind, 'edu.stanford.almond-dev');
+            assert.strictEqual(addToDB, true);
+            return new factory(mockEngine, state);
+        }
+    };
+    const mockEngineWithDevices = Object.create(mockEngine, {
+        devices: {
+            configurable: true,
+            enumerable: true,
+            value: mockDevices,
+            writable: false
+        }
+    });
+    const instance = await factory.runOAuth2(mockEngineWithDevices, req);
+
+    //assert.strictEqual(instance.uniqueId, 'edu.stanford.almond-dev-517e033d9b977261');
+    assert.strictEqual(typeof instance.accessToken, 'string');
+    assert.strictEqual(typeof instance.refreshToken, 'string');
+
+    assert.deepStrictEqual(await instance.get_user_info({}), [{
+        username: 'testuser',
+        email: new Tp.Value.Entity('me@gcampax.com', null),
+        full_name: 'Test User',
+        locale: 'en-US',
+        model_tag: null,
+        timezone: 'America/Los_Angeles'
+    }]);
+}
+
 async function testBasicAuth() {
     const metadata = toClassDef(await mockClient.getDeviceCode('org.httpbin.basicauth'));
 
@@ -177,6 +327,7 @@ async function testBroken() {
 async function main() {
     await testBasic();
     await testOAuth();
+    await testAlmondOAuth();
     await testBasicAuth();
     await testBroken();
 }
