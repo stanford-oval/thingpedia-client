@@ -1834,10 +1834,20 @@ thingpedia@^2.3.0:
     thingtalk "^1.4.1"
     xml2js "^0.4.17"
 
-thingtalk@^1.4.1, thingtalk@~1.7.0:
+thingtalk@^1.4.1:
   version "1.7.0"
   resolved "https://registry.yarnpkg.com/thingtalk/-/thingtalk-1.7.0.tgz#dcc403d00c8fb68d9c2e4eafdb2fcdab632d3293"
   integrity sha512-xOtGizCQi00PScBJ4QUv/vqj5Lo6vG2rU+NLatCrYT13ra5ROgZe+GYabSWXKDJi90Sh3P9K6gKQWT2ghFwxmA==
+  dependencies:
+    adt "~0.7.2"
+    byline "^5.0.0"
+    consumer-queue "^1.0.0"
+    smtlib "^0.1.1"
+
+thingtalk@~1.7.1:
+  version "1.7.1"
+  resolved "https://registry.yarnpkg.com/thingtalk/-/thingtalk-1.7.1.tgz#08c3dd0cfd65fe4f4d5dc82d1f111973fa41df81"
+  integrity sha512-yEhJi+dFhvhd3eKr5X7Y50kTLJt6yfNT/PtJLu8NeQBGHOCBdz7S3sOIJpxxOlEv3pgCmYwl9orLr1kcz+dHiw==
   dependencies:
     adt "~0.7.2"
     byline "^5.0.0"
