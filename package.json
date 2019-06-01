@@ -13,7 +13,7 @@
   ],
   "main": "index.js",
   "dependencies": {
-    "thingpedia": "^2.3.0",
+    "thingpedia": "2.3.4",
     "thingtalk": "~1.7.0",
     "tmp": "^0.1.0"
   },
