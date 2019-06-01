@@ -1822,19 +1822,29 @@ text-table@^0.2.0:
   resolved "https://registry.yarnpkg.com/text-table/-/text-table-0.2.0.tgz#7f5ee823ae805207c00af2df4a84ec3fcfa570b4"
   integrity sha1-f17oI66AUgfACvLfSoTsP8+lcLQ=
 
-thingpedia@^2.3.0:
-  version "2.3.4"
-  resolved "https://registry.yarnpkg.com/thingpedia/-/thingpedia-2.3.4.tgz#57829d9c66b8b8cf8e6a4a68896e9c4bf89f7cb6"
-  integrity sha512-BJussrwsckckSWAPAqf1y5DZy6+9PGMlNcPENmXGKbYKkReFeb0pxiIojatjSMKrdKq9XxdRukLcBXq6cwRrhg==
+thingpedia@^2.4.0:
+  version "2.4.0"
+  resolved "https://registry.yarnpkg.com/thingpedia/-/thingpedia-2.4.0.tgz#a4bd953848e87fb55dfcdc56e231810c22b58bcc"
+  integrity sha512-AVgQwYBH16pU7OcE5mhsFs3oHZ9EsJG0mqGohNZWLVEHsdiWxoahaMVRQFypXpxlcyF/ksCQ8I/0U3qWmdDJXQ==
   dependencies:
     feedparser "^2.2.9"
     ip "~1.1.0"
     oauth "~0.9.14"
     p-finally "^1.0.0"
-    thingtalk "^1.4.1"
+    thingtalk "^1.7.0"
     xml2js "^0.4.17"
 
-thingtalk@^1.4.1, thingtalk@~1.7.0:
+thingtalk@^1.7.0:
+  version "1.7.2"
+  resolved "https://registry.yarnpkg.com/thingtalk/-/thingtalk-1.7.2.tgz#cbe63961cea371a319d6768aef4a615a66c7da0a"
+  integrity sha512-wji0XMvbIReQ7j/edED9POEmcLZlEAc7NlhBjguMSVNzu7+zjtcXFGGst+PMlNeYqndTpr8fbglTUISmdAuPRw==
+  dependencies:
+    adt "~0.7.2"
+    byline "^5.0.0"
+    consumer-queue "^1.0.0"
+    smtlib "^0.1.1"
+
+thingtalk@~1.7.0:
   version "1.7.1"
   resolved "https://registry.yarnpkg.com/thingtalk/-/thingtalk-1.7.1.tgz#08c3dd0cfd65fe4f4d5dc82d1f111973fa41df81"
   integrity sha512-yEhJi+dFhvhd3eKr5X7Y50kTLJt6yfNT/PtJLu8NeQBGHOCBdz7S3sOIJpxxOlEv3pgCmYwl9orLr1kcz+dHiw==
