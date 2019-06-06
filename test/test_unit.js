@@ -240,6 +240,33 @@ const PARSE_GENERIC_RESPONSE_TEST_CASES = [
             hashtags: [new TT.Builtin.Entity('foo', null), new TT.Builtin.Entity('bar', null)],
             actors: ['Leonardo DiCaprio', 'Kate Winslet', 'Billy Zane', 'Kathy Bates'],
         },
+    ]],
+
+    [{
+        args: [
+            {
+                name: 'price',
+                type: 'Currency',
+                json_key: 'Global Quote.05\\. price'
+            }
+        ]
+    }, {
+        "Global Quote": {
+            "01. symbol": "MSFT",
+            "02. open": "126.4400",
+            "03. high": "126.6950",
+            "04. low": "125.6100",
+            "05. price": "126.5500",
+            "06. volume": "10635964",
+            "07. latest trading day": "2019-06-06",
+            "08. previous close": "125.8300",
+            "09. change": "0.7200",
+            "10. change percent": "0.5722%"
+        }
+    }, [
+        {
+            price: new TT.Builtin.Currency(126.55, 'usd')
+        },
     ]]
 ];
 
