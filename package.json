@@ -1,6 +1,6 @@
 {
   "name": "thingpedia-client",
-  "version": "0.2.4",
+  "version": "0.2.5",
   "description": "Thingpedia client-side library",
   "author": "Stanford Mobisocial IoT Lab",
   "license": "GPL-3.0+",

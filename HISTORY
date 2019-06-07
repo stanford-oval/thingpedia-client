@@ -1,3 +1,8 @@
+0.2.5
+=====
+
+* Handle JSON keys containing dots [#31]
+
 0.2.4
 =====
 
