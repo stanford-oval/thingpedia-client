@@ -15,6 +15,37 @@ const assert = require('assert');
 
 const Utils = require('../lib/modules/utils');
 
+const PROPCHAIN_TEST_CASES = [
+    // simple
+    ['foo.bar', ['foo', 'bar']],
+
+    // no chain
+    ['foo', ['foo']],
+
+    // empty strings
+    ['', ['']],
+    ['.foo', ['', 'foo']],
+    ['bar..foo', ['bar', '', 'foo']],
+
+    // escapes
+    ['foo\\.bar', ['foo.bar']],
+    ['foo\\.', ['foo.']],
+    ['foo\\\\bar', ['foo\\bar']],
+    ['foo\\\\.bar', ['foo\\', 'bar']],
+    ['foo.\\\\bar', ['foo', '\\bar']],
+
+    // bad escapes are ignored (the backslash is removed)
+    ['foo\\bar.baz', ['foobar', 'baz']],
+    ['foo\\bar', ['foobar']],
+    ['foo\\', ['foo']],
+    ['\\foo', ['foo']]
+];
+
+function testpropchain() {
+    for (let [input, expected] of PROPCHAIN_TEST_CASES)
+        assert.deepStrictEqual(Utils.splitpropchain(input), expected);
+}
+
 const FORMAT_STRING_TEST_CASES = [
     ['foo ${string}', { string: 'one' }, {}, `foo one`],
     ['foo ${string}', { string: 'one' }, undefined, `foo one`],
@@ -279,6 +310,8 @@ function testParseGenericResponse() {
 }
 
 async function main() {
+    console.log('testPropchain');
+    testpropchain();
     console.log('testFormatString');
     testFormatString();
     console.log('testParseGenericResponse');
