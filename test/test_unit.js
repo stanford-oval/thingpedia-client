@@ -15,6 +15,37 @@ const assert = require('assert');
 
 const Utils = require('../lib/modules/utils');
 
+const PROPCHAIN_TEST_CASES = [
+    // simple
+    ['foo.bar', ['foo', 'bar']],
+
+    // no chain
+    ['foo', ['foo']],
+
+    // empty strings
+    ['', ['']],
+    ['.foo', ['', 'foo']],
+    ['bar..foo', ['bar', '', 'foo']],
+
+    // escapes
+    ['foo\\.bar', ['foo.bar']],
+    ['foo\\.', ['foo.']],
+    ['foo\\\\bar', ['foo\\bar']],
+    ['foo\\\\.bar', ['foo\\', 'bar']],
+    ['foo.\\\\bar', ['foo', '\\bar']],
+
+    // bad escapes are ignored (the backslash is removed)
+    ['foo\\bar.baz', ['foobar', 'baz']],
+    ['foo\\bar', ['foobar']],
+    ['foo\\', ['foo']],
+    ['\\foo', ['foo']]
+];
+
+function testpropchain() {
+    for (let [input, expected] of PROPCHAIN_TEST_CASES)
+        assert.deepStrictEqual(Utils.splitpropchain(input), expected);
+}
+
 const FORMAT_STRING_TEST_CASES = [
     ['foo ${string}', { string: 'one' }, {}, `foo one`],
     ['foo ${string}', { string: 'one' }, undefined, `foo one`],
@@ -240,6 +271,33 @@ const PARSE_GENERIC_RESPONSE_TEST_CASES = [
             hashtags: [new TT.Builtin.Entity('foo', null), new TT.Builtin.Entity('bar', null)],
             actors: ['Leonardo DiCaprio', 'Kate Winslet', 'Billy Zane', 'Kathy Bates'],
         },
+    ]],
+
+    [{
+        args: [
+            {
+                name: 'price',
+                type: 'Currency',
+                json_key: 'Global Quote.05\\. price'
+            }
+        ]
+    }, {
+        "Global Quote": {
+            "01. symbol": "MSFT",
+            "02. open": "126.4400",
+            "03. high": "126.6950",
+            "04. low": "125.6100",
+            "05. price": "126.5500",
+            "06. volume": "10635964",
+            "07. latest trading day": "2019-06-06",
+            "08. previous close": "125.8300",
+            "09. change": "0.7200",
+            "10. change percent": "0.5722%"
+        }
+    }, [
+        {
+            price: new TT.Builtin.Currency(126.55, 'usd')
+        },
     ]]
 ];
 
@@ -252,6 +310,8 @@ function testParseGenericResponse() {
 }
 
 async function main() {
+    console.log('testPropchain');
+    testpropchain();
     console.log('testFormatString');
     testFormatString();
     console.log('testParseGenericResponse');
