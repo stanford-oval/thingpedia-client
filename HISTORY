@@ -1,3 +1,16 @@
+0.2.5
+=====
+
+* Handle JSON keys containing dots [#31]
+
+0.2.4
+=====
+
+* Fixed loading unsupported builtin modules (in combination with cloud sync) [#23]
+* Expose custom error types in the API [#24]
+* Fixed caching in case of JS syntax errors [#25]
+* Updated dependencies [#27]
+
 0.2.3
 =====
 

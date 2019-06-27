@@ -1,6 +1,6 @@
 {
   "name": "thingpedia-client",
-  "version": "0.2.3",
+  "version": "0.2.5",
   "description": "Thingpedia client-side library",
   "author": "Stanford Mobisocial IoT Lab",
   "license": "GPL-3.0+",
@@ -14,7 +14,7 @@
   "main": "index.js",
   "dependencies": {
     "thingpedia": "^2.3.0",
-    "thingtalk": "~1.6.1",
+    "thingtalk": "~1.7.0",
     "tmp": "^0.1.0"
   },
   "scripts": {
@@ -24,7 +24,7 @@
   },
   "devDependencies": {
     "coveralls": "^3.0.1",
-    "eslint": "^5.3.0",
+    "eslint": "^6.0.0",
     "nyc": "^14.0.0",
     "qs": "^6.7.0",
     "tough-cookie": "^3.0.1"
