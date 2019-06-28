@@ -209,15 +209,10 @@ const PARSE_GENERIC_RESPONSE_TEST_CASES = [
         },
     ]],
 
-    [{
-        args: [
-            {
-                name: 'price',
-                type: 'Currency',
-                json_key: 'Global Quote.05\\. price'
-            }
-        ]
-    }, {
+    [`class @foo {
+        query test(out price : Currency
+                   #[json_key="Global Quote.05\\\\. price"]);
+     }`, {
         "Global Quote": {
             "01. symbol": "MSFT",
             "02. open": "126.4400",
