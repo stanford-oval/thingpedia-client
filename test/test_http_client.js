@@ -389,6 +389,29 @@ async function testGetExamples() {
     }
 }
 
+async function testLookupLocation() {
+    const data = await _httpClient.lookupLocation('seattle');
+
+    let found = false;
+    for (let loc of data) {
+        assert.strictEqual(typeof loc.latitude, 'number');
+        assert.strictEqual(typeof loc.longitude, 'number');
+        assert.strictEqual(typeof loc.display, 'string');
+        assert.strictEqual(typeof loc.canonical, 'string');
+        assert.strictEqual(typeof loc.rank, 'number');
+        assert.strictEqual(typeof loc.importance, 'number');
+
+        if (loc.display === 'Seattle, King County, Washington, USA') {
+            assert(Math.abs(loc.latitude - 47.6038321) < 1e-6);
+            assert(Math.abs(loc.longitude - -122.3300624) < 1e-6);
+            assert.strictEqual(loc.canonical, 'seattle king county washington usa');
+            assert.strictEqual(loc.rank, 16);
+            found = true;
+        }
+    }
+    assert(found);
+}
+
 async function main() {
     await testGetDeviceCode();
     await testGetModuleLocation();
@@ -412,6 +435,8 @@ async function main() {
     await testGetDeviceSetup();
     await testGetKindByDiscovery();
     await testGetExamples();
+
+    await testLookupLocation();
 }
 
 module.exports = main;
