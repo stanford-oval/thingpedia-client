@@ -13,14 +13,14 @@
 const assert = require('assert');
 const Tp = require('thingpedia');
 
-const { toManifest, mockClient, mockPlatform, mockEngine, State } = require('./mock');
-const { ImplementationError } = require('../lib/modules/errors');
+const { toClassDef, mockClient, mockPlatform, mockEngine, State } = require('./mock');
+const { ImplementationError } = require('../lib/errors');
 
-const Modules = require('../lib/modules');
+const Modules = require('../lib/loaders');
 const ModuleDownloader = require('../lib/downloader');
 
 async function testBasic() {
-    const metadata = toManifest(await mockClient.getDeviceCode('com.herokuapp.lorem-rss'));
+    const metadata = toClassDef(await mockClient.getDeviceCode('com.herokuapp.lorem-rss'));
 
     const downloader = new ModuleDownloader(mockPlatform, mockClient);
     const module = new (Modules['org.thingpedia.rss'])('com.herokuapp.lorem-rss', metadata, downloader);
@@ -28,7 +28,7 @@ async function testBasic() {
     assert.strictEqual(module.id, 'com.herokuapp.lorem-rss');
     assert.strictEqual(module.version, 1);
 
-    const factory = await module.getDeviceFactory();
+    const factory = await module.getDeviceClass();
 
     assert(factory.prototype instanceof Tp.BaseDevice);
     assert.strictEqual(typeof factory.prototype.get_feed, 'function');
@@ -100,12 +100,12 @@ async function testBroken() {
     const downloader = new ModuleDownloader(mockPlatform, mockClient);
 
     for (let err of ['hasaction', 'nosubscribe']) {
-        const metadata = toManifest(await mockClient.getDeviceCode('com.herokuapp.lorem-rss.broken.' + err));
+        const metadata = toClassDef(await mockClient.getDeviceCode('com.herokuapp.lorem-rss.broken.' + err));
         const module = new (Modules['org.thingpedia.rss'])('com.herokuapp.lorem-rss.broken.' + err,
                                                            metadata, downloader);
 
         // assert that we cannot actually load this device
-        await assert.rejects(() => module.getDeviceFactory(), ImplementationError);
+        await assert.rejects(() => module.getDeviceClass(), ImplementationError);
     }
 }
 

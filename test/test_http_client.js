@@ -223,29 +223,6 @@ function arrayEqual(a1, a2) {
     return true;
 }
 
-// test the compatibility of new thingtalk meta language
-async function testManifestToTT(klass) {
-    for (let i = 0; ; i++) {
-        const page = await _httpClient.getDeviceList(klass, i, 10);
-        for (let j = 0; j < Math.min(page.length, 10); j++) {
-            const device = page[j];
-            const ttCode = await _httpClient.getDeviceCode(device.primary_kind);
-            //console.log(ttCode);
-
-            const tt = ThingTalk.Grammar.parse(ttCode);
-            await tt.typecheck(_schemaRetriever);
-            const generated = ThingTalk.Ast.toManifest(tt);
-            ThingTalk.Ast.fromManifest(device.primary_kind, generated).prettyprint();
-
-            // the generated class can lose some unnecessary info
-            // (eg confirmation_remote) that the original class has
-            //assert.strictEqual(genClass, ttCode);
-        }
-        if (page.length <= 10)
-            break;
-    }
-}
-
 async function testGetDeviceListErrorCases() {
     await assert.rejects(() => _httpClient.getDeviceList('foo'));
 }
@@ -440,7 +417,6 @@ async function main() {
     await testGetModuleLocation();
     await testGetSchemas(false);
     await testGetSchemas(true);
-    await testManifestToTT();
 
     await testGetDeviceList();
     await testGetDeviceList('online');

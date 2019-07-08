@@ -79,6 +79,10 @@ const mockPlatform = {
         default:
             return null;
         }
+    },
+    getOrigin() {
+        // like almond-server
+        return 'http://127.0.0.1:3000';
     }
 };
 
@@ -92,6 +96,7 @@ class MockClient extends BaseClient {
 
     async getDeviceCode(kind) {
         switch (kind) {
+        case 'edu.stanford.almond-dev':
         case 'org.thingpedia.test.mydevice':
         case 'org.thingpedia.test.pkgversion':
         case 'org.thingpedia.test.collection':
@@ -154,14 +159,8 @@ class State {
     }
 }
 
-function toManifest(classCode) {
-    const classDef = ThingTalk.Grammar.parse(classCode).classes[0];
-    const manifest = classDef.toManifest();
-    if (classDef.annotations.package_version)
-        manifest.package_version = classDef.annotations.package_version.toJS();
-    else
-        manifest.package_version = manifest.version;
-    return manifest;
+function toClassDef(classCode) {
+    return ThingTalk.Grammar.parse(classCode).classes[0];
 }
 
-module.exports = { toManifest, mockPlatform, mockClient, mockEngine, State };
+module.exports = { toClassDef, mockPlatform, mockClient, mockEngine, State };

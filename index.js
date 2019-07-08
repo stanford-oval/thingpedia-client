@@ -11,8 +11,8 @@ const BaseClient = require('./lib/base_client');
 const HttpClient = require('./lib/http_client');
 const DeviceFactory = require('./lib/factory');
 const ModuleDownloader = require('./lib/downloader');
-const Modules = require('./lib/modules');
-const { ImplementationError, UnsupportedError } = require('./lib/modules/errors');
+const Modules = require('./lib/loaders');
+const { ImplementationError, UnsupportedError } = require('./lib/errors');
 
 module.exports = {
     BaseClient,
