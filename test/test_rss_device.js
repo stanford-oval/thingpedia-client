@@ -22,7 +22,7 @@ const ModuleDownloader = require('../lib/downloader');
 async function testBasic() {
     const metadata = toClassDef(await mockClient.getDeviceCode('com.herokuapp.lorem-rss'));
 
-    const downloader = new ModuleDownloader(mockPlatform, mockClient);
+    const downloader = new ModuleDownloader(mockPlatform, mockClient, mockEngine.schemas);
     const module = new (Modules['org.thingpedia.rss'])('com.herokuapp.lorem-rss', metadata, downloader);
 
     assert.strictEqual(module.id, 'com.herokuapp.lorem-rss');
@@ -97,7 +97,7 @@ async function testBroken() {
     // test that devices with developer errors report sensible, localized and easy to
     // understand errors
 
-    const downloader = new ModuleDownloader(mockPlatform, mockClient);
+    const downloader = new ModuleDownloader(mockPlatform, mockClient, mockEngine.schemas);
 
     for (let err of ['hasaction', 'nosubscribe']) {
         const metadata = toClassDef(await mockClient.getDeviceCode('com.herokuapp.lorem-rss.broken.' + err));

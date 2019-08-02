@@ -22,7 +22,7 @@ const { toClassDef, mockClient, mockPlatform, mockEngine, State } = require('./m
 async function testDownloader() {
     const metadata = toClassDef(await mockClient.getDeviceCode('org.thingpedia.test.mydevice'));
 
-    const downloader = new ModuleDownloader(mockPlatform, mockClient);
+    const downloader = new ModuleDownloader(mockPlatform, mockClient, mockEngine.schemas);
     const module = await downloader.getModule('org.thingpedia.test.mydevice');
 
     assert.strictEqual(module.id, 'org.thingpedia.test.mydevice');
@@ -33,7 +33,7 @@ async function testDownloader() {
 async function testPreloaded() {
     const metadata = toClassDef(await mockClient.getDeviceCode('org.thingpedia.test.mydevice'));
 
-    const downloader = new ModuleDownloader(mockPlatform, mockClient);
+    const downloader = new ModuleDownloader(mockPlatform, mockClient, mockEngine.schemas);
     const module = new (Modules['org.thingpedia.v2'])('org.thingpedia.test.mydevice', metadata, downloader);
 
     assert.strictEqual(module.id, 'org.thingpedia.test.mydevice');
@@ -139,7 +139,7 @@ async function testSubdevice() {
     const collectionMetadata = toClassDef(await mockClient.getDeviceCode('org.thingpedia.test.collection'));
     //const subMetadata = toClassDef(await mockClient.getDeviceCode('org.thingpedia.test.subdevice'));
 
-    const downloader = new ModuleDownloader(mockPlatform, mockClient);
+    const downloader = new ModuleDownloader(mockPlatform, mockClient, mockEngine.schemas);
 
     const collectionModule = new (Modules['org.thingpedia.v2'])('org.thingpedia.test.collection',
                                                                 collectionMetadata,
@@ -164,7 +164,7 @@ async function testBrokenDevices() {
     // test that devices with developer errors report sensible, localized and easy to
     // understand errors
 
-    const downloader = new ModuleDownloader(mockPlatform, mockClient);
+    const downloader = new ModuleDownloader(mockPlatform, mockClient, mockEngine.schemas);
 
     for (let err of ['noaction', 'noquery', 'nosubscribe']) {
         const metadata = toClassDef(await mockClient.getDeviceCode('org.thingpedia.test.broken.' + err));
@@ -196,7 +196,7 @@ async function testThingpedia() {
     child_process.spawnSync('rm', ['-rf', mockPlatform.getCacheDir() + '/device-classes/com.xkcd']);
 
     const metadata = toClassDef(await mockClient.getDeviceCode('com.xkcd'));
-    const downloader = new ModuleDownloader(mockPlatform, mockClient);
+    const downloader = new ModuleDownloader(mockPlatform, mockClient, mockEngine.schemas);
 
     const module = new (Modules['org.thingpedia.v2'])('com.xkcd', metadata, downloader);
 
@@ -214,7 +214,7 @@ async function testThingpedia() {
 }
 
 async function testPkgVersion() {
-    const downloader = new ModuleDownloader(mockPlatform, mockClient);
+    const downloader = new ModuleDownloader(mockPlatform, mockClient, mockEngine.schemas);
     const module = await downloader.getModule('org.thingpedia.test.pkgversion');
 
     assert.strictEqual(module.id, 'org.thingpedia.test.pkgversion');
