@@ -324,12 +324,28 @@ async function testBroken() {
     await assert.rejects(() => module.getDeviceClass(), ImplementationError);
 }
 
+async function testForm() {
+    const metadata = toClassDef(await mockClient.getDeviceCode('org.httpbin.form'));
+
+    const downloader = new ModuleDownloader(mockPlatform, mockClient, mockEngine.schemas);
+    const module = new (Modules['org.thingpedia.generic_rest.v1'])('org.httpbin.form', metadata, downloader);
+
+    assert.strictEqual(module.id, 'org.httpbin.form');
+    assert.strictEqual(module.version, 1);
+
+    const factory = await module.getDeviceClass();
+
+    const instance = new factory(mockEngine, { kind: 'org.httpbin.form', foo: 'bar' });
+    assert.deepStrictEqual(instance.params, ['bar']);
+}
+
 async function main() {
     await testBasic();
     await testOAuth();
     await testAlmondOAuth();
     await testBasicAuth();
     await testBroken();
+    await testForm();
 }
 
 module.exports = main;
