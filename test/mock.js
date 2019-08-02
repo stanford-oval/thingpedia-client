@@ -110,6 +110,7 @@ class MockClient extends BaseClient {
         case 'org.httpbin.oauth':
         case 'org.httpbin.basicauth':
         case 'org.httpbin.broken':
+        case 'org.httpbin.form':
         case 'com.herokuapp.lorem-rss':
         case 'com.herokuapp.lorem-rss.broken.hasaction':
         case 'com.herokuapp.lorem-rss.broken.nosubscribe': {
