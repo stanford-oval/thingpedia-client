@@ -133,6 +133,11 @@ const mockEngine = {
     get thingpedia() {
         return mockClient;
     },
+
+    _schemas: new ThingTalk.SchemaRetriever(mockClient, null, false),
+    get schemas() {
+        return this._schemas;
+    },
     get ownTier() {
         return 'desktop';
     },

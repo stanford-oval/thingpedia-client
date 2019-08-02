@@ -59,7 +59,7 @@ async function testPoll(instance, fn) {
 async function testBasic() {
     const metadata = toClassDef(await mockClient.getDeviceCode('org.httpbin'));
 
-    const downloader = new ModuleDownloader(mockPlatform, mockClient);
+    const downloader = new ModuleDownloader(mockPlatform, mockClient, mockEngine.schemas);
     const module = new (Modules['org.thingpedia.generic_rest.v1'])('org.httpbin', metadata, downloader);
 
     assert.strictEqual(module.id, 'org.httpbin');
@@ -116,7 +116,7 @@ function assertIsGetter(object, prop, { configurable, enumerable }) {
 async function testOAuth() {
     const metadata = toClassDef(await mockClient.getDeviceCode('org.httpbin.oauth'));
 
-    const downloader = new ModuleDownloader(mockPlatform, mockClient);
+    const downloader = new ModuleDownloader(mockPlatform, mockClient, mockEngine.schemas);
     const module = new (Modules['org.thingpedia.generic_rest.v1'])('org.httpbin.oauth', metadata, downloader);
 
     assert.strictEqual(module.id, 'org.httpbin.oauth');
@@ -203,7 +203,7 @@ async function startSession(url) {
 async function testAlmondOAuth() {
     const metadata = toClassDef(await mockClient.getDeviceCode('edu.stanford.almond-dev'));
 
-    const downloader = new ModuleDownloader(mockPlatform, mockClient);
+    const downloader = new ModuleDownloader(mockPlatform, mockClient, mockEngine.schemas);
     const module = new (Modules['org.thingpedia.generic_rest.v1'])('edu.stanford.almond-dev', metadata, downloader);
 
     assert.strictEqual(module.id, 'edu.stanford.almond-dev');
@@ -290,7 +290,7 @@ async function testAlmondOAuth() {
 async function testBasicAuth() {
     const metadata = toClassDef(await mockClient.getDeviceCode('org.httpbin.basicauth'));
 
-    const downloader = new ModuleDownloader(mockPlatform, mockClient);
+    const downloader = new ModuleDownloader(mockPlatform, mockClient, mockEngine.schemas);
     const module = new (Modules['org.thingpedia.generic_rest.v1'])('org.httpbin.basicauth', metadata, downloader);
 
     assert.strictEqual(module.id, 'org.httpbin.basicauth');
@@ -315,7 +315,7 @@ async function testBroken() {
     // test that devices with developer errors report sensible, localized and easy to
     // understand errors
 
-    const downloader = new ModuleDownloader(mockPlatform, mockClient);
+    const downloader = new ModuleDownloader(mockPlatform, mockClient, mockEngine.schemas);
 
     const metadata = toClassDef(await mockClient.getDeviceCode('org.httpbin.broken'));
     const module = new (Modules['org.thingpedia.generic_rest.v1'])('org.httpbin.broken', metadata, downloader);

@@ -81,7 +81,7 @@ Builtins['org.thingpedia.builtin.test.collection'].module.subdevices = {
 };
 
 async function testBasic() {
-    const downloader = new ModuleDownloader(mockPlatform, mockClient, Builtins);
+    const downloader = new ModuleDownloader(mockPlatform, mockClient, mockEngine.schemas, Builtins);
     const module = await downloader.getModule('org.thingpedia.builtin.foo');
 
     assert.strictEqual(module.id, 'org.thingpedia.builtin.foo');
@@ -93,7 +93,7 @@ async function testBasic() {
 }
 
 async function testCollection() {
-    const downloader = new ModuleDownloader(mockPlatform, mockClient, Builtins);
+    const downloader = new ModuleDownloader(mockPlatform, mockClient, mockEngine.schemas, Builtins);
     const module = await downloader.getModule('org.thingpedia.builtin.test.collection');
 
     assert.strictEqual(module.id, 'org.thingpedia.builtin.test.collection');
@@ -112,7 +112,7 @@ async function testCollection() {
 }
 
 async function testUnsupported() {
-    const downloader = new ModuleDownloader(mockPlatform, mockClient, Builtins);
+    const downloader = new ModuleDownloader(mockPlatform, mockClient, mockEngine.schemas, Builtins);
     const module = await downloader.getModule('org.thingpedia.builtin.test.invalid');
 
     assert.strictEqual(module.id, 'org.thingpedia.builtin.test.invalid');
